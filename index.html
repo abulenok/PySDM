@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.2" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>PySDM API documentation</title>
 <meta name="description" content="PySDM offers a set of building blocks for development of atmospheric cloud
 simulation systems revolving around the particle-based microphysics …" />
@@ -35,9 +35,10 @@ PySDM development has been spearheaded at the Faculty of Mathematics and Compute
 <a href="https://github.com/atmos-cloud-sim-uj/PySDM/blob/master/README.md">README.md file</a>
 which also includes basic usage examples in <strong>Python</strong>, <strong>Julia</strong> and <strong>Matlab</strong>.</p>
 <p>A set of more elaborate examples engineered in Python and accompanied with Jupyter
-notebooks are maintained in the <a href="https://github.com/atmos-cloud-sim-uj/PySDM-examples">PySDM-examples package</a>.</p>
-<p>PySDM tests suite built using <a href="https://docs.pytest.org/">pytest</a> is located in the
-<a href="https://github.com/atmos-cloud-sim-uj/PySDM/tree/master/PySDM_tests">PySDM_tests package</a>.</p>
+notebooks are maintained in the
+<a href="https://github.com/atmos-cloud-sim-uj/PySDM-examples">PySDM-examples package</a>.</p>
+<p>PySDM test-suite built using <a href="https://docs.pytest.org/">pytest</a> is located in the
+<a href="https://github.com/atmos-cloud-sim-uj/PySDM/tree/master/tests">tests package</a>.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -58,16 +59,17 @@ For details on PySDM dependencies and installation procedures, see project
 which also includes basic usage examples in **Python**, **Julia** and **Matlab**.
 
 A set of more elaborate examples engineered in Python and accompanied with Jupyter
-notebooks are maintained in the [PySDM-examples package](https://github.com/atmos-cloud-sim-uj/PySDM-examples).
+notebooks are maintained in the
+[PySDM-examples package](https://github.com/atmos-cloud-sim-uj/PySDM-examples).
 
-PySDM tests suite built using [pytest](https://docs.pytest.org/) is located in the
-[PySDM_tests package](https://github.com/atmos-cloud-sim-uj/PySDM/tree/master/PySDM_tests).
+PySDM test-suite built using [pytest](https://docs.pytest.org/) is located in the
+[tests package](https://github.com/atmos-cloud-sim-uj/PySDM/tree/master/tests).
 &#34;&#34;&#34;
 
-from .builder import Builder
-from .core import Core
-
 from pkg_resources import get_distribution, DistributionNotFound, VersionConflict
+from .builder import Builder
+from .particulator import Particulator
+
 try:
     __version__ = get_distribution(__name__).version
 except (DistributionNotFound, VersionConflict):
@@ -92,11 +94,7 @@ and <code>GPU</code>=<code><a title="PySDM.backends.thrustRTC.thrustRTC.ThrustRT
 <dt><code class="name"><a title="PySDM.builder" href="builder.html">PySDM.builder</a></code></dt>
 <dd>
 <div class="desc"><p>The Builder class handling creation of
-<code><a title="PySDM.core.Core" href="core.html#PySDM.core.Core">Core</a></code> instances</p></div>
-</dd>
-<dt><code class="name"><a title="PySDM.core" href="core.html">PySDM.core</a></code></dt>
-<dd>
-<div class="desc"><p>The very class exposing <code><a title="PySDM.core.Core.run" href="core.html#PySDM.core.Core.run">Core.run()</a></code> method for launching simulations</p></div>
+<code>PySDM.Particulator</code> instances</p></div>
 </dd>
 <dt><code class="name"><a title="PySDM.dynamics" href="dynamics/index.html">PySDM.dynamics</a></code></dt>
 <dd>
@@ -110,12 +108,20 @@ and <code>GPU</code>=<code><a title="PySDM.backends.thrustRTC.thrustRTC.ThrustRT
 <code><a title="PySDM.environments.box.Box" href="environments/box.html#PySDM.environments.box.Box">Box</a></code>,
 <code><a title="PySDM.environments.parcel.Parcel" href="environments/parcel.html#PySDM.environments.parcel.Parcel">Parcel</a></code>, &hellip;</p></div>
 </dd>
+<dt><code class="name"><a title="PySDM.exporters" href="exporters/index.html">PySDM.exporters</a></code></dt>
+<dd>
+<div class="desc"><p>Exporters module</p></div>
+</dd>
 <dt><code class="name"><a title="PySDM.initialisation" href="initialisation/index.html">PySDM.initialisation</a></code></dt>
 <dd>
 <div class="desc"><p>Initialisation logic incl.
 <code><a title="PySDM.initialisation.spectral_sampling" href="initialisation/spectral_sampling.html">PySDM.initialisation.spectral_sampling</a></code>,
 <code><a title="PySDM.initialisation.spatial_sampling" href="initialisation/spatial_sampling.html">PySDM.initialisation.spatial_sampling</a></code>,
 <code>PySDM.initialisation.spectra</code></p></div>
+</dd>
+<dt><code class="name"><a title="PySDM.particulator" href="particulator.html">PySDM.particulator</a></code></dt>
+<dd>
+<div class="desc"><p>The very class exposing <code>PySDM.Particulator.run()</code> method for launching simulations</p></div>
 </dd>
 <dt><code class="name"><a title="PySDM.physics" href="physics/index.html">PySDM.physics</a></code></dt>
 <dd>
@@ -155,10 +161,11 @@ and <code>GPU</code>=<code><a title="PySDM.backends.thrustRTC.thrustRTC.ThrustRT
 <li><code><a title="PySDM.attributes" href="attributes/index.html">PySDM.attributes</a></code></li>
 <li><code><a title="PySDM.backends" href="backends/index.html">PySDM.backends</a></code></li>
 <li><code><a title="PySDM.builder" href="builder.html">PySDM.builder</a></code></li>
-<li><code><a title="PySDM.core" href="core.html">PySDM.core</a></code></li>
 <li><code><a title="PySDM.dynamics" href="dynamics/index.html">PySDM.dynamics</a></code></li>
 <li><code><a title="PySDM.environments" href="environments/index.html">PySDM.environments</a></code></li>
+<li><code><a title="PySDM.exporters" href="exporters/index.html">PySDM.exporters</a></code></li>
 <li><code><a title="PySDM.initialisation" href="initialisation/index.html">PySDM.initialisation</a></code></li>
+<li><code><a title="PySDM.particulator" href="particulator.html">PySDM.particulator</a></code></li>
 <li><code><a title="PySDM.physics" href="physics/index.html">PySDM.physics</a></code></li>
 <li><code><a title="PySDM.products" href="products/index.html">PySDM.products</a></code></li>
 <li><code><a title="PySDM.state" href="state/index.html">PySDM.state</a></code></li>
@@ -169,7 +176,7 @@ and <code>GPU</code>=<code><a title="PySDM.backends.thrustRTC.thrustRTC.ThrustRT
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
 </body>
 </html>

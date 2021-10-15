@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.2" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>PySDM.environments.parcel API documentation</title>
 <meta name="description" content="Zero-dimensional adiabatic parcel framework" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -69,7 +69,7 @@ class Parcel(_Moist):
         return self.formulae.trivia.volume_of_density_mass(rhod_mean, self.mass_of_dry_air)
 
     def register(self, builder):
-        self.formulae = builder.core.formulae
+        self.formulae = builder.particulator.formulae
         pd0 = self.formulae.trivia.p_d(self.p0, self.q0)
         rhod0 = self.formulae.state_variable_triplet.rhod_of_pd_T(pd0, self.T0)
         self.params = (self.q0, self.formulae.trivia.th_std(pd0, self.T0), rhod0, self.z0, 0)
@@ -95,13 +95,14 @@ class Parcel(_Moist):
 
         attributes = {}
         attributes[&#39;dry volume&#39;] = self.formulae.trivia.volume(radius=r_dry)
+        attributes[&#39;kappa times dry volume&#39;] = attributes[&#39;dry volume&#39;] * kappa
         attributes[&#39;n&#39;] = discretise_n(n_in_dv)
-        r_wet = r_wet_init(r_dry, self, kappa, rtol=rtol)
+        r_wet = r_wet_init(r_dry, self, kappa_times_dry_volume=attributes[&#39;kappa times dry volume&#39;], rtol=rtol)
         attributes[&#39;volume&#39;] = self.formulae.trivia.volume(radius=r_wet)
         return attributes
 
     def advance_parcel_vars(self):
-        dt = self.core.dt
+        dt = self.particulator.dt
         T = self[&#39;T&#39;][0]
         p = self[&#39;p&#39;][0]
         t = self[&#39;t&#39;][0]
@@ -114,9 +115,9 @@ class Parcel(_Moist):
         drho_dz = self.formulae.hydrostatics.drho_dz(self.g, p, T, qv, lv, dql_dz=dql_dz)
         drhod_dz = drho_dz
 
-        self.core.bck.explicit_euler(self._tmp[&#39;t&#39;], dt, 1)
-        self.core.bck.explicit_euler(self._tmp[&#39;z&#39;], dt, dz_dt)
-        self.core.bck.explicit_euler(self._tmp[&#39;rhod&#39;], dt, dz_dt * drhod_dz)
+        self.particulator.bck.explicit_euler(self._tmp[&#39;t&#39;], dt, 1)
+        self.particulator.bck.explicit_euler(self._tmp[&#39;z&#39;], dt, dz_dt)
+        self.particulator.bck.explicit_euler(self._tmp[&#39;rhod&#39;], dt, dz_dt * drhod_dz)
 
         self.mesh.dv = self.formulae.trivia.volume_of_density_mass(
             (self._tmp[&#39;rhod&#39;][0] + self[&#34;rhod&#34;][0]) / 2,
@@ -189,7 +190,7 @@ class Parcel(_Moist):
         return self.formulae.trivia.volume_of_density_mass(rhod_mean, self.mass_of_dry_air)
 
     def register(self, builder):
-        self.formulae = builder.core.formulae
+        self.formulae = builder.particulator.formulae
         pd0 = self.formulae.trivia.p_d(self.p0, self.q0)
         rhod0 = self.formulae.state_variable_triplet.rhod_of_pd_T(pd0, self.T0)
         self.params = (self.q0, self.formulae.trivia.th_std(pd0, self.T0), rhod0, self.z0, 0)
@@ -215,13 +216,14 @@ class Parcel(_Moist):
 
         attributes = {}
         attributes[&#39;dry volume&#39;] = self.formulae.trivia.volume(radius=r_dry)
+        attributes[&#39;kappa times dry volume&#39;] = attributes[&#39;dry volume&#39;] * kappa
         attributes[&#39;n&#39;] = discretise_n(n_in_dv)
-        r_wet = r_wet_init(r_dry, self, kappa, rtol=rtol)
+        r_wet = r_wet_init(r_dry, self, kappa_times_dry_volume=attributes[&#39;kappa times dry volume&#39;], rtol=rtol)
         attributes[&#39;volume&#39;] = self.formulae.trivia.volume(radius=r_wet)
         return attributes
 
     def advance_parcel_vars(self):
-        dt = self.core.dt
+        dt = self.particulator.dt
         T = self[&#39;T&#39;][0]
         p = self[&#39;p&#39;][0]
         t = self[&#39;t&#39;][0]
@@ -234,9 +236,9 @@ class Parcel(_Moist):
         drho_dz = self.formulae.hydrostatics.drho_dz(self.g, p, T, qv, lv, dql_dz=dql_dz)
         drhod_dz = drho_dz
 
-        self.core.bck.explicit_euler(self._tmp[&#39;t&#39;], dt, 1)
-        self.core.bck.explicit_euler(self._tmp[&#39;z&#39;], dt, dz_dt)
-        self.core.bck.explicit_euler(self._tmp[&#39;rhod&#39;], dt, dz_dt * drhod_dz)
+        self.particulator.bck.explicit_euler(self._tmp[&#39;t&#39;], dt, 1)
+        self.particulator.bck.explicit_euler(self._tmp[&#39;z&#39;], dt, dz_dt)
+        self.particulator.bck.explicit_euler(self._tmp[&#39;rhod&#39;], dt, dz_dt * drhod_dz)
 
         self.mesh.dv = self.formulae.trivia.volume_of_density_mass(
             (self._tmp[&#39;rhod&#39;][0] + self[&#34;rhod&#34;][0]) / 2,
@@ -291,7 +293,7 @@ def dv(self):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def advance_parcel_vars(self):
-    dt = self.core.dt
+    dt = self.particulator.dt
     T = self[&#39;T&#39;][0]
     p = self[&#39;p&#39;][0]
     t = self[&#39;t&#39;][0]
@@ -304,9 +306,9 @@ def dv(self):
     drho_dz = self.formulae.hydrostatics.drho_dz(self.g, p, T, qv, lv, dql_dz=dql_dz)
     drhod_dz = drho_dz
 
-    self.core.bck.explicit_euler(self._tmp[&#39;t&#39;], dt, 1)
-    self.core.bck.explicit_euler(self._tmp[&#39;z&#39;], dt, dz_dt)
-    self.core.bck.explicit_euler(self._tmp[&#39;rhod&#39;], dt, dz_dt * drhod_dz)
+    self.particulator.bck.explicit_euler(self._tmp[&#39;t&#39;], dt, 1)
+    self.particulator.bck.explicit_euler(self._tmp[&#39;z&#39;], dt, dz_dt)
+    self.particulator.bck.explicit_euler(self._tmp[&#39;rhod&#39;], dt, dz_dt * drhod_dz)
 
     self.mesh.dv = self.formulae.trivia.volume_of_density_mass(
         (self._tmp[&#39;rhod&#39;][0] + self[&#34;rhod&#34;][0]) / 2,
@@ -357,8 +359,9 @@ def dv(self):
 
     attributes = {}
     attributes[&#39;dry volume&#39;] = self.formulae.trivia.volume(radius=r_dry)
+    attributes[&#39;kappa times dry volume&#39;] = attributes[&#39;dry volume&#39;] * kappa
     attributes[&#39;n&#39;] = discretise_n(n_in_dv)
-    r_wet = r_wet_init(r_dry, self, kappa, rtol=rtol)
+    r_wet = r_wet_init(r_dry, self, kappa_times_dry_volume=attributes[&#39;kappa times dry volume&#39;], rtol=rtol)
     attributes[&#39;volume&#39;] = self.formulae.trivia.volume(radius=r_wet)
     return attributes</code></pre>
 </details>
@@ -373,7 +376,7 @@ def dv(self):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def register(self, builder):
-    self.formulae = builder.core.formulae
+    self.formulae = builder.particulator.formulae
     pd0 = self.formulae.trivia.p_d(self.p0, self.q0)
     rhod0 = self.formulae.state_variable_triplet.rhod_of_pd_T(pd0, self.T0)
     self.params = (self.q0, self.formulae.trivia.th_std(pd0, self.T0), rhod0, self.z0, 0)
@@ -459,7 +462,7 @@ def dv(self):
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
 </body>
 </html>

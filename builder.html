@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.2" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>PySDM.builder API documentation</title>
 <meta name="description" content="The Builder class handling creation of
-`PySDM.core.Core` instances" />
+`PySDM.Particulator` instances" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -24,17 +24,17 @@
 </header>
 <section id="section-intro">
 <p>The Builder class handling creation of
-<code><a title="PySDM.core.Core" href="core.html#PySDM.core.Core">Core</a></code> instances</p>
+<code>PySDM.Particulator</code> instances</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;
-The Builder class handling creation of  `PySDM.core.Core` instances
+The Builder class handling creation of  `PySDM.Particulator` instances
 &#34;&#34;&#34;
 import numpy as np
 
-from PySDM.core import Core
+from PySDM.particulator import Particulator
 from PySDM.initialisation.multiplicities import discretise_n  # TODO #324
 from PySDM.state.particles_factory import ParticlesFactory
 from PySDM.state.wall_timer import WallTimer
@@ -48,10 +48,10 @@ import inspect
 
 class Builder:
 
-    def __init__(self, n_sd, backend, formulae=Formulae()):
-        assert inspect.isclass(backend)
-        self.formulae = formulae
-        self.core = Core(n_sd, backend(formulae))
+    def __init__(self, n_sd, backend):
+        assert not inspect.isclass(backend)
+        self.formulae = backend.formulae
+        self.particulator = Particulator(n_sd, backend)
         self.req_attr = {&#39;n&#39;: Multiplicities(self), &#39;volume&#39;: Volume(self), &#39;cell id&#39;: CellID(self)}
         self.aerosol_radius_threshold = 0
         self.condensation_params = None
@@ -60,32 +60,34 @@ class Builder:
         self.condensation_params = kwargs
 
     def set_environment(self, environment):
-        assert_none(self.core.environment)
-        self.core.environment = environment
-        self.core.environment.register(self)
+        assert_none(self.particulator.environment)
+        self.particulator.environment = environment
+        self.particulator.environment.register(self)
 
     def add_dynamic(self, dynamic):
-        assert_not_none(self.core.environment)
-        self.core.dynamics[dynamic.__class__.__name__] = dynamic
+        assert self.particulator.environment is not None
+        self.particulator.dynamics[dynamic.__class__.__name__] = dynamic
 
     def register_product(self, product):
-        if product.name in self.core.products:
+        if product.name in self.particulator.products:
             raise Exception(f&#39;product name &#34;{product.name}&#34; already registered&#39;)
         product.register(self)
-        self.core.products[product.name] = product
+        self.particulator.products[product.name] = product
 
     def get_attribute(self, attribute_name):
         self.request_attribute(attribute_name)
         return self.req_attr[attribute_name]
 
-    def request_attribute(self, attribute):
+    def request_attribute(self, attribute, variant=None):
         if attribute not in self.req_attr:
-            self.req_attr[attribute] = attr_class(attribute, self.core.dynamics)(self)
+            self.req_attr[attribute] = attr_class(attribute, self.particulator.dynamics)(self)
+        if variant is not None:
+            assert variant == self.req_attr[attribute]
 
     def build(self, attributes: dict, products: list = (), int_caster=discretise_n):
-        self.core.backend.sanity_check()
+        assert self.particulator.environment is not None
 
-        for dynamic in self.core.dynamics.values():
+        for dynamic in self.particulator.dynamics.values():
             dynamic.register(self)
 
         for product in products:
@@ -93,30 +95,24 @@ class Builder:
 
         for attribute in attributes:
             self.request_attribute(attribute)
-        if &#39;Condensation&#39; in self.core.dynamics:
-            self.core.condensation_solver = \
-                self.core.backend.make_condensation_solver(self.core.dt, self.core.mesh.n_cell, **self.condensation_params)
+        if &#39;Condensation&#39; in self.particulator.dynamics:
+            self.particulator.condensation_solver = \
+                self.particulator.backend.make_condensation_solver(self.particulator.dt, self.particulator.mesh.n_cell, **self.condensation_params)
         attributes[&#39;n&#39;] = int_caster(attributes[&#39;n&#39;])
-        if self.core.mesh.dimension == 0:
+        if self.particulator.mesh.dimension == 0:
             attributes[&#39;cell id&#39;] = np.zeros_like(attributes[&#39;n&#39;], dtype=np.int64)
-        self.core.particles = ParticlesFactory.attributes(self.core, self.req_attr, attributes)
+        self.particulator.attributes = ParticlesFactory.attributes(self.particulator, self.req_attr, attributes)
 
-        for key in self.core.dynamics.keys():
-            self.core.timers[key] = WallTimer()
+        for key in self.particulator.dynamics:
+            self.particulator.timers[key] = WallTimer()
 
-        return self.core
+        return self.particulator
 
 
 def assert_none(*params):
     for param in params:
         if param is not None:
-            raise AssertionError(str(param.__class__.__name__) + &#34; is already initialized.&#34;)
-
-
-def assert_not_none(*params):
-    for param in params:
-        if param is None:
-            raise AssertionError(str(param.__class__.__name__) + &#34; is not initialized.&#34;)</code></pre>
+            raise AssertionError(str(param.__class__.__name__) + &#34; is already initialized.&#34;)</code></pre>
 </details>
 </section>
 <section>
@@ -141,21 +137,6 @@ def assert_not_none(*params):
             raise AssertionError(str(param.__class__.__name__) + &#34; is already initialized.&#34;)</code></pre>
 </details>
 </dd>
-<dt id="PySDM.builder.assert_not_none"><code class="name flex">
-<span>def <span class="ident">assert_not_none</span></span>(<span>*params)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def assert_not_none(*params):
-    for param in params:
-        if param is None:
-            raise AssertionError(str(param.__class__.__name__) + &#34; is not initialized.&#34;)</code></pre>
-</details>
-</dd>
 </dl>
 </section>
 <section>
@@ -163,7 +144,7 @@ def assert_not_none(*params):
 <dl>
 <dt id="PySDM.builder.Builder"><code class="flex name class">
 <span>class <span class="ident">Builder</span></span>
-<span>(</span><span>n_sd, backend, formulae=&lt;PySDM.physics.formulae.Formulae object&gt;)</span>
+<span>(</span><span>n_sd, backend)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -173,10 +154,10 @@ def assert_not_none(*params):
 </summary>
 <pre><code class="python">class Builder:
 
-    def __init__(self, n_sd, backend, formulae=Formulae()):
-        assert inspect.isclass(backend)
-        self.formulae = formulae
-        self.core = Core(n_sd, backend(formulae))
+    def __init__(self, n_sd, backend):
+        assert not inspect.isclass(backend)
+        self.formulae = backend.formulae
+        self.particulator = Particulator(n_sd, backend)
         self.req_attr = {&#39;n&#39;: Multiplicities(self), &#39;volume&#39;: Volume(self), &#39;cell id&#39;: CellID(self)}
         self.aerosol_radius_threshold = 0
         self.condensation_params = None
@@ -185,32 +166,34 @@ def assert_not_none(*params):
         self.condensation_params = kwargs
 
     def set_environment(self, environment):
-        assert_none(self.core.environment)
-        self.core.environment = environment
-        self.core.environment.register(self)
+        assert_none(self.particulator.environment)
+        self.particulator.environment = environment
+        self.particulator.environment.register(self)
 
     def add_dynamic(self, dynamic):
-        assert_not_none(self.core.environment)
-        self.core.dynamics[dynamic.__class__.__name__] = dynamic
+        assert self.particulator.environment is not None
+        self.particulator.dynamics[dynamic.__class__.__name__] = dynamic
 
     def register_product(self, product):
-        if product.name in self.core.products:
+        if product.name in self.particulator.products:
             raise Exception(f&#39;product name &#34;{product.name}&#34; already registered&#39;)
         product.register(self)
-        self.core.products[product.name] = product
+        self.particulator.products[product.name] = product
 
     def get_attribute(self, attribute_name):
         self.request_attribute(attribute_name)
         return self.req_attr[attribute_name]
 
-    def request_attribute(self, attribute):
+    def request_attribute(self, attribute, variant=None):
         if attribute not in self.req_attr:
-            self.req_attr[attribute] = attr_class(attribute, self.core.dynamics)(self)
+            self.req_attr[attribute] = attr_class(attribute, self.particulator.dynamics)(self)
+        if variant is not None:
+            assert variant == self.req_attr[attribute]
 
     def build(self, attributes: dict, products: list = (), int_caster=discretise_n):
-        self.core.backend.sanity_check()
+        assert self.particulator.environment is not None
 
-        for dynamic in self.core.dynamics.values():
+        for dynamic in self.particulator.dynamics.values():
             dynamic.register(self)
 
         for product in products:
@@ -218,18 +201,18 @@ def assert_not_none(*params):
 
         for attribute in attributes:
             self.request_attribute(attribute)
-        if &#39;Condensation&#39; in self.core.dynamics:
-            self.core.condensation_solver = \
-                self.core.backend.make_condensation_solver(self.core.dt, self.core.mesh.n_cell, **self.condensation_params)
+        if &#39;Condensation&#39; in self.particulator.dynamics:
+            self.particulator.condensation_solver = \
+                self.particulator.backend.make_condensation_solver(self.particulator.dt, self.particulator.mesh.n_cell, **self.condensation_params)
         attributes[&#39;n&#39;] = int_caster(attributes[&#39;n&#39;])
-        if self.core.mesh.dimension == 0:
+        if self.particulator.mesh.dimension == 0:
             attributes[&#39;cell id&#39;] = np.zeros_like(attributes[&#39;n&#39;], dtype=np.int64)
-        self.core.particles = ParticlesFactory.attributes(self.core, self.req_attr, attributes)
+        self.particulator.attributes = ParticlesFactory.attributes(self.particulator, self.req_attr, attributes)
 
-        for key in self.core.dynamics.keys():
-            self.core.timers[key] = WallTimer()
+        for key in self.particulator.dynamics:
+            self.particulator.timers[key] = WallTimer()
 
-        return self.core</code></pre>
+        return self.particulator</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
@@ -243,8 +226,8 @@ def assert_not_none(*params):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def add_dynamic(self, dynamic):
-    assert_not_none(self.core.environment)
-    self.core.dynamics[dynamic.__class__.__name__] = dynamic</code></pre>
+    assert self.particulator.environment is not None
+    self.particulator.dynamics[dynamic.__class__.__name__] = dynamic</code></pre>
 </details>
 </dd>
 <dt id="PySDM.builder.Builder.build"><code class="name flex">
@@ -257,9 +240,9 @@ def assert_not_none(*params):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def build(self, attributes: dict, products: list = (), int_caster=discretise_n):
-    self.core.backend.sanity_check()
+    assert self.particulator.environment is not None
 
-    for dynamic in self.core.dynamics.values():
+    for dynamic in self.particulator.dynamics.values():
         dynamic.register(self)
 
     for product in products:
@@ -267,18 +250,18 @@ def assert_not_none(*params):
 
     for attribute in attributes:
         self.request_attribute(attribute)
-    if &#39;Condensation&#39; in self.core.dynamics:
-        self.core.condensation_solver = \
-            self.core.backend.make_condensation_solver(self.core.dt, self.core.mesh.n_cell, **self.condensation_params)
+    if &#39;Condensation&#39; in self.particulator.dynamics:
+        self.particulator.condensation_solver = \
+            self.particulator.backend.make_condensation_solver(self.particulator.dt, self.particulator.mesh.n_cell, **self.condensation_params)
     attributes[&#39;n&#39;] = int_caster(attributes[&#39;n&#39;])
-    if self.core.mesh.dimension == 0:
+    if self.particulator.mesh.dimension == 0:
         attributes[&#39;cell id&#39;] = np.zeros_like(attributes[&#39;n&#39;], dtype=np.int64)
-    self.core.particles = ParticlesFactory.attributes(self.core, self.req_attr, attributes)
+    self.particulator.attributes = ParticlesFactory.attributes(self.particulator, self.req_attr, attributes)
 
-    for key in self.core.dynamics.keys():
-        self.core.timers[key] = WallTimer()
+    for key in self.particulator.dynamics:
+        self.particulator.timers[key] = WallTimer()
 
-    return self.core</code></pre>
+    return self.particulator</code></pre>
 </details>
 </dd>
 <dt id="PySDM.builder.Builder.get_attribute"><code class="name flex">
@@ -305,14 +288,14 @@ def assert_not_none(*params):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def register_product(self, product):
-    if product.name in self.core.products:
+    if product.name in self.particulator.products:
         raise Exception(f&#39;product name &#34;{product.name}&#34; already registered&#39;)
     product.register(self)
-    self.core.products[product.name] = product</code></pre>
+    self.particulator.products[product.name] = product</code></pre>
 </details>
 </dd>
 <dt id="PySDM.builder.Builder.request_attribute"><code class="name flex">
-<span>def <span class="ident">request_attribute</span></span>(<span>self, attribute)</span>
+<span>def <span class="ident">request_attribute</span></span>(<span>self, attribute, variant=None)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -320,9 +303,11 @@ def assert_not_none(*params):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def request_attribute(self, attribute):
+<pre><code class="python">def request_attribute(self, attribute, variant=None):
     if attribute not in self.req_attr:
-        self.req_attr[attribute] = attr_class(attribute, self.core.dynamics)(self)</code></pre>
+        self.req_attr[attribute] = attr_class(attribute, self.particulator.dynamics)(self)
+    if variant is not None:
+        assert variant == self.req_attr[attribute]</code></pre>
 </details>
 </dd>
 <dt id="PySDM.builder.Builder.set_environment"><code class="name flex">
@@ -335,9 +320,9 @@ def assert_not_none(*params):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_environment(self, environment):
-    assert_none(self.core.environment)
-    self.core.environment = environment
-    self.core.environment.register(self)</code></pre>
+    assert_none(self.particulator.environment)
+    self.particulator.environment = environment
+    self.particulator.environment.register(self)</code></pre>
 </details>
 </dd>
 </dl>
@@ -359,7 +344,6 @@ def assert_not_none(*params):
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="PySDM.builder.assert_none" href="#PySDM.builder.assert_none">assert_none</a></code></li>
-<li><code><a title="PySDM.builder.assert_not_none" href="#PySDM.builder.assert_not_none">assert_not_none</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
@@ -381,7 +365,7 @@ def assert_not_none(*params):
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
 </body>
 </html>

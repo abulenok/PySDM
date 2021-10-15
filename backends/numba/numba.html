@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.2" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>PySDM.backends.numba.numba API documentation</title>
 <meta name="description" content="Multi-threaded CPU backend using LLVM-powered just-in-time compilation" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -36,10 +36,12 @@ from PySDM.backends.numba.impl._pair_methods import PairMethods
 from PySDM.backends.numba.impl._physics_methods import PhysicsMethods
 from PySDM.backends.numba.impl._index_methods import IndexMethods
 from PySDM.backends.numba.impl.condensation_methods import CondensationMethods
-from .impl.moments_methods import MomentsMethods
+from PySDM.backends.numba.impl.moments_methods import MomentsMethods
+from PySDM.backends.numba.impl.freezing_methods import FreezingMethods
 from PySDM.backends.numba.impl._chemistry_methods import ChemistryMethods
 from PySDM.backends.numba.random import Random as ImportedRandom
 from PySDM.backends.numba.storage import Storage as ImportedStorage
+from PySDM.physics import Formulae
 
 
 class Numba(
@@ -49,21 +51,19 @@ class Numba(
     PhysicsMethods,
     CondensationMethods,
     ChemistryMethods,
-    MomentsMethods
+    MomentsMethods,
+    FreezingMethods
 ):
     Storage = ImportedStorage
     Random = ImportedRandom
 
     default_croupier = &#39;local&#39;
 
-    def __init__(self, formulae):
-        self.formulae = formulae
+    def __init__(self, formulae=None):
+        self.formulae = formulae or Formulae()
         PhysicsMethods.__init__(self)
         ChemistryMethods.__init__(self)
-
-    @staticmethod
-    def sanity_check():
-        pass</code></pre>
+        FreezingMethods.__init__(self)</code></pre>
 </details>
 </section>
 <section>
@@ -77,7 +77,7 @@ class Numba(
 <dl>
 <dt id="PySDM.backends.numba.numba.Numba"><code class="flex name class">
 <span>class <span class="ident">Numba</span></span>
-<span>(</span><span>formulae)</span>
+<span>(</span><span>formulae=None)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -92,21 +92,19 @@ class Numba(
     PhysicsMethods,
     CondensationMethods,
     ChemistryMethods,
-    MomentsMethods
+    MomentsMethods,
+    FreezingMethods
 ):
     Storage = ImportedStorage
     Random = ImportedRandom
 
     default_croupier = &#39;local&#39;
 
-    def __init__(self, formulae):
-        self.formulae = formulae
+    def __init__(self, formulae=None):
+        self.formulae = formulae or Formulae()
         PhysicsMethods.__init__(self)
         ChemistryMethods.__init__(self)
-
-    @staticmethod
-    def sanity_check():
-        pass</code></pre>
+        FreezingMethods.__init__(self)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -117,6 +115,7 @@ class Numba(
 <li><a title="PySDM.backends.numba.impl.condensation_methods.CondensationMethods" href="impl/condensation_methods.html#PySDM.backends.numba.impl.condensation_methods.CondensationMethods">CondensationMethods</a></li>
 <li>PySDM.backends.numba.impl._chemistry_methods.ChemistryMethods</li>
 <li><a title="PySDM.backends.numba.impl.moments_methods.MomentsMethods" href="impl/moments_methods.html#PySDM.backends.numba.impl.moments_methods.MomentsMethods">MomentsMethods</a></li>
+<li><a title="PySDM.backends.numba.impl.freezing_methods.FreezingMethods" href="impl/freezing_methods.html#PySDM.backends.numba.impl.freezing_methods.FreezingMethods">FreezingMethods</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>
@@ -131,23 +130,6 @@ class Numba(
 <dt id="PySDM.backends.numba.numba.Numba.default_croupier"><code class="name">var <span class="ident">default_croupier</span></code></dt>
 <dd>
 <div class="desc"></div>
-</dd>
-</dl>
-<h3>Static methods</h3>
-<dl>
-<dt id="PySDM.backends.numba.numba.Numba.sanity_check"><code class="name flex">
-<span>def <span class="ident">sanity_check</span></span>(<span>)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@staticmethod
-def sanity_check():
-    pass</code></pre>
-</details>
 </dd>
 </dl>
 </dd>
@@ -173,7 +155,6 @@ def sanity_check():
 <li><code><a title="PySDM.backends.numba.numba.Numba.Random" href="#PySDM.backends.numba.numba.Numba.Random">Random</a></code></li>
 <li><code><a title="PySDM.backends.numba.numba.Numba.Storage" href="#PySDM.backends.numba.numba.Numba.Storage">Storage</a></code></li>
 <li><code><a title="PySDM.backends.numba.numba.Numba.default_croupier" href="#PySDM.backends.numba.numba.Numba.default_croupier">default_croupier</a></code></li>
-<li><code><a title="PySDM.backends.numba.numba.Numba.sanity_check" href="#PySDM.backends.numba.numba.Numba.sanity_check">sanity_check</a></code></li>
 </ul>
 </li>
 </ul>
@@ -182,7 +163,7 @@ def sanity_check():
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
 </body>
 </html>
