@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>PySDM.products.dynamics.freezing.ice_water_content API documentation</title>
+<title>PySDM.physics.freezing_temperature_spectrum.bigg_1953 API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>PySDM.products.dynamics.freezing.ice_water_content</code></h1>
+<h1 class="title">Module <code>PySDM.physics.freezing_temperature_spectrum.bigg_1953</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -27,33 +27,32 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">import numpy as np
-from ...product import MomentProduct
-from ....physics import constants as const
+from PySDM.physics import constants as const
+
+P_median = .5
+DT_median = np.nan
+
+# TODO #599: there are two Bigg 1953 papers
+# TODO #599: relate DT to drop volume to A_insol? (the second paper!)
 
 
-class IceWaterContent(MomentProduct):
+class Bigg_1953:
+    def __init__(self):
+        assert np.isfinite(DT_median)
 
-    def __init__(self, specific=True):
-        super().__init__(
-            name=&#39;qi&#39;,
-            unit=&#39;g/kg&#39; if specific else &#39;kg/m3&#39;,
-            description=f&#39;Ice water mixing ratio&#39;
-        )
-        self.specific = specific
+    @staticmethod
+    def pdf(T, A_insol):
+        A = np.log(1 - P_median)
+        B = DT_median - const.T0
+        return - A * np.exp(A * np.exp(B + T) + B + T)
 
-    def get(self):
-        self.download_moment_to_buffer(&#39;volume&#39;, rank=0, filter_range=(-np.inf, 0))
-        conc = self.buffer.copy()
+    @staticmethod
+    def cdf(T, A_insol):
+        return np.exp(np.log(1 - P_median) * np.exp(DT_median - (const.T0 - T)))
 
-        self.download_moment_to_buffer(&#39;volume&#39;, rank=1, filter_range=(-np.inf, 0))
-        result = self.buffer.copy()
-        result[:] *= -const.rho_i * conc  / self.particulator.mesh.dv
-
-        if self.specific:
-            self.download_to_buffer(self.particulator.environment[&#39;rhod&#39;])
-            result[:] /= self.buffer
-            const.convert_to(result, const.si.gram / const.si.kilogram)
-        return result</code></pre>
+    @staticmethod
+    def median():
+        return const.T0 - DT_median</code></pre>
 </details>
 </section>
 <section>
@@ -65,9 +64,8 @@ class IceWaterContent(MomentProduct):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="PySDM.products.dynamics.freezing.ice_water_content.IceWaterContent"><code class="flex name class">
-<span>class <span class="ident">IceWaterContent</span></span>
-<span>(</span><span>specific=True)</span>
+<dt id="PySDM.physics.freezing_temperature_spectrum.bigg_1953.Bigg_1953"><code class="flex name class">
+<span>class <span class="ident">Bigg_1953</span></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -75,39 +73,28 @@ class IceWaterContent(MomentProduct):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class IceWaterContent(MomentProduct):
+<pre><code class="python">class Bigg_1953:
+    def __init__(self):
+        assert np.isfinite(DT_median)
 
-    def __init__(self, specific=True):
-        super().__init__(
-            name=&#39;qi&#39;,
-            unit=&#39;g/kg&#39; if specific else &#39;kg/m3&#39;,
-            description=f&#39;Ice water mixing ratio&#39;
-        )
-        self.specific = specific
+    @staticmethod
+    def pdf(T, A_insol):
+        A = np.log(1 - P_median)
+        B = DT_median - const.T0
+        return - A * np.exp(A * np.exp(B + T) + B + T)
 
-    def get(self):
-        self.download_moment_to_buffer(&#39;volume&#39;, rank=0, filter_range=(-np.inf, 0))
-        conc = self.buffer.copy()
+    @staticmethod
+    def cdf(T, A_insol):
+        return np.exp(np.log(1 - P_median) * np.exp(DT_median - (const.T0 - T)))
 
-        self.download_moment_to_buffer(&#39;volume&#39;, rank=1, filter_range=(-np.inf, 0))
-        result = self.buffer.copy()
-        result[:] *= -const.rho_i * conc  / self.particulator.mesh.dv
-
-        if self.specific:
-            self.download_to_buffer(self.particulator.environment[&#39;rhod&#39;])
-            result[:] /= self.buffer
-            const.convert_to(result, const.si.gram / const.si.kilogram)
-        return result</code></pre>
+    @staticmethod
+    def median():
+        return const.T0 - DT_median</code></pre>
 </details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li><a title="PySDM.products.product.MomentProduct" href="../../product.html#PySDM.products.product.MomentProduct">MomentProduct</a></li>
-<li><a title="PySDM.products.product.Product" href="../../product.html#PySDM.products.product.Product">Product</a></li>
-</ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
-<dt id="PySDM.products.dynamics.freezing.ice_water_content.IceWaterContent.get"><code class="name flex">
-<span>def <span class="ident">get</span></span>(<span>self)</span>
+<dt id="PySDM.physics.freezing_temperature_spectrum.bigg_1953.Bigg_1953.cdf"><code class="name flex">
+<span>def <span class="ident">cdf</span></span>(<span>T, A_insol)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -115,19 +102,39 @@ class IceWaterContent(MomentProduct):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get(self):
-    self.download_moment_to_buffer(&#39;volume&#39;, rank=0, filter_range=(-np.inf, 0))
-    conc = self.buffer.copy()
-
-    self.download_moment_to_buffer(&#39;volume&#39;, rank=1, filter_range=(-np.inf, 0))
-    result = self.buffer.copy()
-    result[:] *= -const.rho_i * conc  / self.particulator.mesh.dv
-
-    if self.specific:
-        self.download_to_buffer(self.particulator.environment[&#39;rhod&#39;])
-        result[:] /= self.buffer
-        const.convert_to(result, const.si.gram / const.si.kilogram)
-    return result</code></pre>
+<pre><code class="python">@staticmethod
+def cdf(T, A_insol):
+    return np.exp(np.log(1 - P_median) * np.exp(DT_median - (const.T0 - T)))</code></pre>
+</details>
+</dd>
+<dt id="PySDM.physics.freezing_temperature_spectrum.bigg_1953.Bigg_1953.median"><code class="name flex">
+<span>def <span class="ident">median</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def median():
+    return const.T0 - DT_median</code></pre>
+</details>
+</dd>
+<dt id="PySDM.physics.freezing_temperature_spectrum.bigg_1953.Bigg_1953.pdf"><code class="name flex">
+<span>def <span class="ident">pdf</span></span>(<span>T, A_insol)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def pdf(T, A_insol):
+    A = np.log(1 - P_median)
+    B = DT_median - const.T0
+    return - A * np.exp(A * np.exp(B + T) + B + T)</code></pre>
 </details>
 </dd>
 </dl>
@@ -143,15 +150,17 @@ class IceWaterContent(MomentProduct):
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="PySDM.products.dynamics.freezing" href="index.html">PySDM.products.dynamics.freezing</a></code></li>
+<li><code><a title="PySDM.physics.freezing_temperature_spectrum" href="index.html">PySDM.physics.freezing_temperature_spectrum</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="PySDM.products.dynamics.freezing.ice_water_content.IceWaterContent" href="#PySDM.products.dynamics.freezing.ice_water_content.IceWaterContent">IceWaterContent</a></code></h4>
+<h4><code><a title="PySDM.physics.freezing_temperature_spectrum.bigg_1953.Bigg_1953" href="#PySDM.physics.freezing_temperature_spectrum.bigg_1953.Bigg_1953">Bigg_1953</a></code></h4>
 <ul class="">
-<li><code><a title="PySDM.products.dynamics.freezing.ice_water_content.IceWaterContent.get" href="#PySDM.products.dynamics.freezing.ice_water_content.IceWaterContent.get">get</a></code></li>
+<li><code><a title="PySDM.physics.freezing_temperature_spectrum.bigg_1953.Bigg_1953.cdf" href="#PySDM.physics.freezing_temperature_spectrum.bigg_1953.Bigg_1953.cdf">cdf</a></code></li>
+<li><code><a title="PySDM.physics.freezing_temperature_spectrum.bigg_1953.Bigg_1953.median" href="#PySDM.physics.freezing_temperature_spectrum.bigg_1953.Bigg_1953.median">median</a></code></li>
+<li><code><a title="PySDM.physics.freezing_temperature_spectrum.bigg_1953.Bigg_1953.pdf" href="#PySDM.physics.freezing_temperature_spectrum.bigg_1953.Bigg_1953.pdf">pdf</a></code></li>
 </ul>
 </li>
 </ul>

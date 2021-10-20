@@ -107,14 +107,14 @@ class MoistEnvironmentProduct(Product):
         self.source = None
 
     def register(self, builder):
-        assert isinstance(builder.particulator.env, _Moist)
         super().register(builder)
         self.particulator.observers.append(self)
         self.environment = builder.particulator.env
         self.source = self.environment[self._name]
 
     def notify(self):
-        self.source = self.environment.get_predicted(self._name)
+        if isinstance(self.environment, _Moist):
+            self.source = self.environment.get_predicted(self._name)
 
     def get(self):
         self.download_to_buffer(self.source)
@@ -149,14 +149,14 @@ class MoistEnvironmentProduct(Product):
         self.source = None
 
     def register(self, builder):
-        assert isinstance(builder.particulator.env, _Moist)
         super().register(builder)
         self.particulator.observers.append(self)
         self.environment = builder.particulator.env
         self.source = self.environment[self._name]
 
     def notify(self):
-        self.source = self.environment.get_predicted(self._name)
+        if isinstance(self.environment, _Moist):
+            self.source = self.environment.get_predicted(self._name)
 
     def get(self):
         self.download_to_buffer(self.source)
@@ -201,7 +201,8 @@ class MoistEnvironmentProduct(Product):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def notify(self):
-    self.source = self.environment.get_predicted(self._name)</code></pre>
+    if isinstance(self.environment, _Moist):
+        self.source = self.environment.get_predicted(self._name)</code></pre>
 </details>
 </dd>
 <dt id="PySDM.products.product.MoistEnvironmentProduct.register"><code class="name flex">
@@ -214,7 +215,6 @@ class MoistEnvironmentProduct(Product):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def register(self, builder):
-    assert isinstance(builder.particulator.env, _Moist)
     super().register(builder)
     self.particulator.observers.append(self)
     self.environment = builder.particulator.env
@@ -263,6 +263,7 @@ class MoistEnvironmentProduct(Product):
 <ul class="hlist">
 <li><a title="PySDM.products.dynamics.aqueous_chemistry.aqueous_mole_fraction.AqueousMoleFraction" href="dynamics/aqueous_chemistry/aqueous_mole_fraction.html#PySDM.products.dynamics.aqueous_chemistry.aqueous_mole_fraction.AqueousMoleFraction">AqueousMoleFraction</a></li>
 <li><a title="PySDM.products.dynamics.aqueous_chemistry.pH.pH" href="dynamics/aqueous_chemistry/pH.html#PySDM.products.dynamics.aqueous_chemistry.pH.pH">pH</a></li>
+<li><a title="PySDM.products.dynamics.condensation.activable_fraction.ActivableFraction" href="dynamics/condensation/activable_fraction.html#PySDM.products.dynamics.condensation.activable_fraction.ActivableFraction">ActivableFraction</a></li>
 <li><a title="PySDM.products.dynamics.freezing.ice_water_content.IceWaterContent" href="dynamics/freezing/ice_water_content.html#PySDM.products.dynamics.freezing.ice_water_content.IceWaterContent">IceWaterContent</a></li>
 <li><a title="PySDM.products.dynamics.freezing.total_unfrozen_immersed_surface_area.TotalUnfrozenImmersedSurfaceArea" href="dynamics/freezing/total_unfrozen_immersed_surface_area.html#PySDM.products.dynamics.freezing.total_unfrozen_immersed_surface_area.TotalUnfrozenImmersedSurfaceArea">TotalUnfrozenImmersedSurfaceArea</a></li>
 <li><a title="PySDM.products.state.aerosol_specific_concentration.AerosolSpecificConcentration" href="state/aerosol_specific_concentration.html#PySDM.products.state.aerosol_specific_concentration.AerosolSpecificConcentration">AerosolSpecificConcentration</a></li>

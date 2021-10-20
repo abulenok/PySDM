@@ -26,24 +26,28 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from PySDM.physics import constants as const, si
+<pre><code class="python">from PySDM.physics import constants as const
 import numpy as np
 
-a = -0.517
-b = 8.934
-A_insol = const.pi * (1*si.um)**2
+a = np.nan
+b = np.nan
+
 
 class Niemand_et_al_2012:
     def __str__(self):
         return &#39;Niemand et al. 2012&#39;
 
+    def __init__(self):
+        assert np.isfinite(a)
+        assert np.isfinite(b)
+
     @staticmethod
-    def pdf(T):
+    def pdf(T, A_insol):
         ns_T = np.exp(a * (T - const.T0) + b)
         return -A_insol * a * ns_T * np.exp(-A_insol * ns_T)
 
     @staticmethod
-    def cdf(T):
+    def cdf(T, A_insol):
         ns_T = np.exp(a * (T - const.T0) + b)
         return 1 - np.exp(-A_insol * ns_T) - np.exp(-A_insol*np.exp(-a * const.T0 + b))</code></pre>
 </details>
@@ -70,20 +74,24 @@ class Niemand_et_al_2012:
     def __str__(self):
         return &#39;Niemand et al. 2012&#39;
 
+    def __init__(self):
+        assert np.isfinite(a)
+        assert np.isfinite(b)
+
     @staticmethod
-    def pdf(T):
+    def pdf(T, A_insol):
         ns_T = np.exp(a * (T - const.T0) + b)
         return -A_insol * a * ns_T * np.exp(-A_insol * ns_T)
 
     @staticmethod
-    def cdf(T):
+    def cdf(T, A_insol):
         ns_T = np.exp(a * (T - const.T0) + b)
         return 1 - np.exp(-A_insol * ns_T) - np.exp(-A_insol*np.exp(-a * const.T0 + b))</code></pre>
 </details>
 <h3>Static methods</h3>
 <dl>
 <dt id="PySDM.physics.freezing_temperature_spectrum.niemand_et_al_2012.Niemand_et_al_2012.cdf"><code class="name flex">
-<span>def <span class="ident">cdf</span></span>(<span>T)</span>
+<span>def <span class="ident">cdf</span></span>(<span>T, A_insol)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -92,13 +100,13 @@ class Niemand_et_al_2012:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-def cdf(T):
+def cdf(T, A_insol):
     ns_T = np.exp(a * (T - const.T0) + b)
     return 1 - np.exp(-A_insol * ns_T) - np.exp(-A_insol*np.exp(-a * const.T0 + b))</code></pre>
 </details>
 </dd>
 <dt id="PySDM.physics.freezing_temperature_spectrum.niemand_et_al_2012.Niemand_et_al_2012.pdf"><code class="name flex">
-<span>def <span class="ident">pdf</span></span>(<span>T)</span>
+<span>def <span class="ident">pdf</span></span>(<span>T, A_insol)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -107,7 +115,7 @@ def cdf(T):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-def pdf(T):
+def pdf(T, A_insol):
     ns_T = np.exp(a * (T - const.T0) + b)
     return -A_insol * a * ns_T * np.exp(-A_insol * ns_T)</code></pre>
 </details>
