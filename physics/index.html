@@ -30,23 +30,12 @@
 <pre><code class="python">&#34;&#34;&#34;
 Physical `PySDM.physics.constants` and `PySDM.physics.formulae.Formulae`
 &#34;&#34;&#34;
+from PySDM.physics import (condensation_coordinate, latent_heat, saturation_vapour_pressure,
+    hygroscopicity, drop_growth, surface_tension, diffusion_kinetics, diffusion_thermics,
+    ventilation, state_variable_triplet, trivia, particle_advection, hydrostatics,
+    freezing_temperature_spectrum, heterogeneous_ice_nucleation_rate)
 from .constants import si
-from .formulae import Formulae
-import PySDM.physics.condensation_coordinate
-import PySDM.physics.latent_heat
-import PySDM.physics.saturation_vapour_pressure
-import PySDM.physics.hygroscopicity
-import PySDM.physics.drop_growth
-import PySDM.physics.surface_tension
-import PySDM.physics.diffusion_kinetics
-import PySDM.physics.diffusion_thermics
-import PySDM.physics.ventilation
-import PySDM.physics.state_variable_triplet
-import PySDM.physics.trivia
-import PySDM.physics.particle_advection
-import PySDM.physics.hydrostatics
-import PySDM.physics.freezing_temperature_spectrum
-import PySDM.physics.heterogeneous_ice_nucleation_rate</code></pre>
+from .formulae import Formulae</code></pre>
 </details>
 </section>
 <section>
@@ -58,7 +47,9 @@ import PySDM.physics.heterogeneous_ice_nucleation_rate</code></pre>
 </dd>
 <dt><code class="name"><a title="PySDM.physics.coalescence_kernels" href="coalescence_kernels/index.html">PySDM.physics.coalescence_kernels</a></code></dt>
 <dd>
-<div class="desc"><p>Coalescence kernels including <a href="https://atmos-cloud-sim-uj.github.io/PySDM/physics/coalescence_kernels/golovin.html">Golovin</a>, …</p></div>
+<div class="desc"><p>Coalescence kernels including
+<a href="https://atmos-cloud-sim-uj.github.io/PySDM/physics/coalescence_kernels/golovin.html">Golovin</a>,
+…</p></div>
 </dd>
 <dt><code class="name"><a title="PySDM.physics.condensation_coordinate" href="condensation_coordinate/index.html">PySDM.physics.condensation_coordinate</a></code></dt>
 <dd>
@@ -80,7 +71,8 @@ import PySDM.physics.heterogeneous_ice_nucleation_rate</code></pre>
 </dd>
 <dt><code class="name"><a title="PySDM.physics.dimensional_analysis" href="dimensional_analysis.html">PySDM.physics.dimensional_analysis</a></code></dt>
 <dd>
-<div class="desc"><p>A context manager (for use with the <code>with</code> statement) for use in unit tests which disables Numba and enables Pint</p></div>
+<div class="desc"><p>A context manager (for use with the <code>with</code> statement)
+for use in unit tests which disables Numba and enables Pint</p></div>
 </dd>
 <dt><code class="name"><a title="PySDM.physics.drop_growth" href="drop_growth/index.html">PySDM.physics.drop_growth</a></code></dt>
 <dd>

@@ -26,9 +26,11 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import numpy as np
+<pre><code class="python">import numba
+import numpy as np
 from scipy.interpolate import Rbf
 from PySDM.physics import constants as const
+from PySDM.backends.numba import conf
 
 
 class Interpolation:
@@ -69,7 +71,9 @@ class RogersYau:
     &#34;&#34;&#34;
     Rogers &amp; Yau, equations: (8.5), (8.6), (8.8)
     &#34;&#34;&#34;
-    def __init__(self, particles, small_k=None, medium_k=None, large_k=None, small_r_limit=None, medium_r_limit=None):
+    def __init__(self, particles,
+                 small_k=None, medium_k=None, large_k=None,
+                 small_r_limit=None, medium_r_limit=None):
         si = const.si
         self.particles = particles
         self.small_k = small_k or 1.19e6 / si.cm / si.s
@@ -79,8 +83,11 @@ class RogersYau:
         self.medium_r_limit = medium_r_limit or 600 * si.um
 
     def __call__(self, output, radius):
-        self.particles.backend.terminal_velocity(output.data, radius.data, self.small_k, self.medium_k, self.large_k,
-                                                 self.small_r_limit, self.medium_r_limit)
+        self.particles.backend.terminal_velocity(
+            output.data, radius.data,
+            self.small_k, self.medium_k, self.large_k,
+            self.small_r_limit, self.medium_r_limit
+        )
 
 
 # TODO #348 implement in backend logic
@@ -115,15 +122,13 @@ class TpDependent:
 
         c4 = np.array([10.5035, 1.08750, -0.133245, -0.00659969])
 
-        import numba
-        from numba import prange
-        from PySDM.backends.numba import conf
-
         @numba.njit(**{**conf.JIT_FLAGS, &#34;cache&#34;: False, &#34;parallel&#34;: False})
         def f4(r):
             return (n0 / n) * (1 + 1.255 * l / r) / (1 + 1.255 * l0 / r)
 
-        c8 = np.array([6.5639, -1.0391, -1.4001, -0.82736, -0.34277, -0.083072, -0.010583, -0.00054208])
+        c8 = np.asarray(
+            (6.5639, -1.0391, -1.4001, -0.82736, -0.34277, -0.083072, -0.010583, -0.00054208)
+        )
 
         @numba.njit(**{**conf.JIT_FLAGS, &#34;cache&#34;: False, &#34;parallel&#34;: False})
         def f8(r):
@@ -135,7 +140,7 @@ class TpDependent:
 
         @numba.njit(**{**conf.JIT_FLAGS, &#34;cache&#34;: False})
         def terminal_velocity(values, radius, threshold):
-            for i in prange(len(values)):
+            for i in numba.prange(len(values)):  # pylint: disable=not-an-iterable
                 r = radius[i] / cm
                 sum_r = 0
                 if radius[i] &lt; threshold:
@@ -224,7 +229,9 @@ class TpDependent:
     &#34;&#34;&#34;
     Rogers &amp; Yau, equations: (8.5), (8.6), (8.8)
     &#34;&#34;&#34;
-    def __init__(self, particles, small_k=None, medium_k=None, large_k=None, small_r_limit=None, medium_r_limit=None):
+    def __init__(self, particles,
+                 small_k=None, medium_k=None, large_k=None,
+                 small_r_limit=None, medium_r_limit=None):
         si = const.si
         self.particles = particles
         self.small_k = small_k or 1.19e6 / si.cm / si.s
@@ -234,8 +241,11 @@ class TpDependent:
         self.medium_r_limit = medium_r_limit or 600 * si.um
 
     def __call__(self, output, radius):
-        self.particles.backend.terminal_velocity(output.data, radius.data, self.small_k, self.medium_k, self.large_k,
-                                                 self.small_r_limit, self.medium_r_limit)</code></pre>
+        self.particles.backend.terminal_velocity(
+            output.data, radius.data,
+            self.small_k, self.medium_k, self.large_k,
+            self.small_r_limit, self.medium_r_limit
+        )</code></pre>
 </details>
 </dd>
 <dt id="PySDM.physics.terminal_velocity.gunn_and_kinzer.TpDependent"><code class="flex name class">
@@ -279,15 +289,13 @@ class TpDependent:
 
         c4 = np.array([10.5035, 1.08750, -0.133245, -0.00659969])
 
-        import numba
-        from numba import prange
-        from PySDM.backends.numba import conf
-
         @numba.njit(**{**conf.JIT_FLAGS, &#34;cache&#34;: False, &#34;parallel&#34;: False})
         def f4(r):
             return (n0 / n) * (1 + 1.255 * l / r) / (1 + 1.255 * l0 / r)
 
-        c8 = np.array([6.5639, -1.0391, -1.4001, -0.82736, -0.34277, -0.083072, -0.010583, -0.00054208])
+        c8 = np.asarray(
+            (6.5639, -1.0391, -1.4001, -0.82736, -0.34277, -0.083072, -0.010583, -0.00054208)
+        )
 
         @numba.njit(**{**conf.JIT_FLAGS, &#34;cache&#34;: False, &#34;parallel&#34;: False})
         def f8(r):
@@ -299,7 +307,7 @@ class TpDependent:
 
         @numba.njit(**{**conf.JIT_FLAGS, &#34;cache&#34;: False})
         def terminal_velocity(values, radius, threshold):
-            for i in prange(len(values)):
+            for i in numba.prange(len(values)):  # pylint: disable=not-an-iterable
                 r = radius[i] / cm
                 sum_r = 0
                 if radius[i] &lt; threshold:
@@ -346,15 +354,13 @@ def make(only_small=False):
 
     c4 = np.array([10.5035, 1.08750, -0.133245, -0.00659969])
 
-    import numba
-    from numba import prange
-    from PySDM.backends.numba import conf
-
     @numba.njit(**{**conf.JIT_FLAGS, &#34;cache&#34;: False, &#34;parallel&#34;: False})
     def f4(r):
         return (n0 / n) * (1 + 1.255 * l / r) / (1 + 1.255 * l0 / r)
 
-    c8 = np.array([6.5639, -1.0391, -1.4001, -0.82736, -0.34277, -0.083072, -0.010583, -0.00054208])
+    c8 = np.asarray(
+        (6.5639, -1.0391, -1.4001, -0.82736, -0.34277, -0.083072, -0.010583, -0.00054208)
+    )
 
     @numba.njit(**{**conf.JIT_FLAGS, &#34;cache&#34;: False, &#34;parallel&#34;: False})
     def f8(r):
@@ -366,7 +372,7 @@ def make(only_small=False):
 
     @numba.njit(**{**conf.JIT_FLAGS, &#34;cache&#34;: False})
     def terminal_velocity(values, radius, threshold):
-        for i in prange(len(values)):
+        for i in numba.prange(len(values)):  # pylint: disable=not-an-iterable
             r = radius[i] / cm
             sum_r = 0
             if radius[i] &lt; threshold:

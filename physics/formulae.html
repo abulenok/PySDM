@@ -43,9 +43,20 @@ from PySDM.physics import constants as const
 
 def _formula(func=None, **kw):
     if func is None:
-        return numba.njit(**{**conf.JIT_FLAGS, **{&#39;parallel&#39;: False, &#39;inline&#39;: &#39;always&#39;, &#39;cache&#39;: False, **kw}})
+        return numba.njit(
+            **{
+                **conf.JIT_FLAGS,
+                **{&#39;parallel&#39;: False, &#39;inline&#39;: &#39;always&#39;, &#39;cache&#39;: False, **kw}
+            }
+        )
     else:
-        return numba.njit(func, **{**conf.JIT_FLAGS, **{&#39;parallel&#39;: False, &#39;inline&#39;: &#39;always&#39;, &#39;cache&#39;: False, **kw}})
+        return numba.njit(
+            func,
+            **{
+                **conf.JIT_FLAGS,
+                **{&#39;parallel&#39;: False, &#39;inline&#39;: &#39;always&#39;, &#39;cache&#39;: False, **kw}
+            }
+        )
 
 
 def _boost(obj, fastmath):
@@ -68,7 +79,7 @@ def _c_inline(fun, return_type=None, **args):
     post = r&#34;([ )/*\-+,]|$)&#34;
     real_fmt = &#34;.32g&#34;
     source = &#39;&#39;
-    for lineno, line in enumerate(inspect.getsourcelines(fun)[0]):
+    for line in inspect.getsourcelines(fun)[0]:
         stripped = line.strip()
         if stripped.startswith(&#39;@&#39;):
             continue
@@ -98,7 +109,7 @@ def _pick(value: str, choices: dict):
 
 
 def _choices(module):
-    return dict([(name, cls) for name, cls in module.__dict__.items() if isinstance(cls, type)])
+    return {name: cls for name, cls in module.__dict__.items() if isinstance(cls, type)}
 
 
 @lru_cache()
@@ -130,20 +141,34 @@ class Formulae:
 
         self.trivia = _magick(&#39;Trivia&#39;, physics.trivia, fastmath)
 
-        self.condensation_coordinate = _magick(condensation_coordinate, physics.condensation_coordinate, fastmath)
-        self.saturation_vapour_pressure = _magick(saturation_vapour_pressure, physics.saturation_vapour_pressure, fastmath)
-        self.latent_heat = _magick(latent_heat, physics.latent_heat, fastmath)
-        self.hygroscopicity = _magick(hygroscopicity, physics.hygroscopicity, fastmath)
-        self.drop_growth = _magick(drop_growth, physics.drop_growth, fastmath)
-        self.surface_tension = _magick(surface_tension, physics.surface_tension, fastmath)
-        self.diffusion_kinetics = _magick(diffusion_kinetics, physics.diffusion_kinetics, fastmath)
-        self.diffusion_thermics = _magick(diffusion_thermics, physics.diffusion_thermics, fastmath)
-        self.ventilation = _magick(ventilation, physics.ventilation, fastmath)
-        self.state_variable_triplet = _magick(state_variable_triplet, physics.state_variable_triplet, fastmath)
-        self.particle_advection = _magick(particle_advection, physics.particle_advection, fastmath)
-        self.hydrostatics = _magick(hydrostatics, physics.hydrostatics, fastmath)
-        self.freezing_temperature_spectrum = _magick(freezing_temperature_spectrum, physics.freezing_temperature_spectrum, fastmath)
-        self.heterogeneous_ice_nucleation_rate = _magick(heterogeneous_ice_nucleation_rate, physics.heterogeneous_ice_nucleation_rate, fastmath)
+        self.condensation_coordinate = _magick(
+            condensation_coordinate, physics.condensation_coordinate, fastmath)
+        self.saturation_vapour_pressure = _magick(
+            saturation_vapour_pressure, physics.saturation_vapour_pressure, fastmath)
+        self.latent_heat = _magick(
+            latent_heat, physics.latent_heat, fastmath)
+        self.hygroscopicity = _magick(
+            hygroscopicity, physics.hygroscopicity, fastmath)
+        self.drop_growth = _magick(
+            drop_growth, physics.drop_growth, fastmath)
+        self.surface_tension = _magick(
+            surface_tension, physics.surface_tension, fastmath)
+        self.diffusion_kinetics = _magick(
+            diffusion_kinetics, physics.diffusion_kinetics, fastmath)
+        self.diffusion_thermics = _magick(
+            diffusion_thermics, physics.diffusion_thermics, fastmath)
+        self.ventilation = _magick(
+            ventilation, physics.ventilation, fastmath)
+        self.state_variable_triplet = _magick(
+            state_variable_triplet, physics.state_variable_triplet, fastmath)
+        self.particle_advection = _magick(
+            particle_advection, physics.particle_advection, fastmath)
+        self.hydrostatics = _magick(
+            hydrostatics, physics.hydrostatics, fastmath)
+        self.freezing_temperature_spectrum = _magick(
+            freezing_temperature_spectrum, physics.freezing_temperature_spectrum, fastmath)
+        self.heterogeneous_ice_nucleation_rate = _magick(
+            heterogeneous_ice_nucleation_rate, physics.heterogeneous_ice_nucleation_rate, fastmath)
         self.__check()
 
     def __str__(self):
@@ -207,20 +232,34 @@ class Formulae:
 
         self.trivia = _magick(&#39;Trivia&#39;, physics.trivia, fastmath)
 
-        self.condensation_coordinate = _magick(condensation_coordinate, physics.condensation_coordinate, fastmath)
-        self.saturation_vapour_pressure = _magick(saturation_vapour_pressure, physics.saturation_vapour_pressure, fastmath)
-        self.latent_heat = _magick(latent_heat, physics.latent_heat, fastmath)
-        self.hygroscopicity = _magick(hygroscopicity, physics.hygroscopicity, fastmath)
-        self.drop_growth = _magick(drop_growth, physics.drop_growth, fastmath)
-        self.surface_tension = _magick(surface_tension, physics.surface_tension, fastmath)
-        self.diffusion_kinetics = _magick(diffusion_kinetics, physics.diffusion_kinetics, fastmath)
-        self.diffusion_thermics = _magick(diffusion_thermics, physics.diffusion_thermics, fastmath)
-        self.ventilation = _magick(ventilation, physics.ventilation, fastmath)
-        self.state_variable_triplet = _magick(state_variable_triplet, physics.state_variable_triplet, fastmath)
-        self.particle_advection = _magick(particle_advection, physics.particle_advection, fastmath)
-        self.hydrostatics = _magick(hydrostatics, physics.hydrostatics, fastmath)
-        self.freezing_temperature_spectrum = _magick(freezing_temperature_spectrum, physics.freezing_temperature_spectrum, fastmath)
-        self.heterogeneous_ice_nucleation_rate = _magick(heterogeneous_ice_nucleation_rate, physics.heterogeneous_ice_nucleation_rate, fastmath)
+        self.condensation_coordinate = _magick(
+            condensation_coordinate, physics.condensation_coordinate, fastmath)
+        self.saturation_vapour_pressure = _magick(
+            saturation_vapour_pressure, physics.saturation_vapour_pressure, fastmath)
+        self.latent_heat = _magick(
+            latent_heat, physics.latent_heat, fastmath)
+        self.hygroscopicity = _magick(
+            hygroscopicity, physics.hygroscopicity, fastmath)
+        self.drop_growth = _magick(
+            drop_growth, physics.drop_growth, fastmath)
+        self.surface_tension = _magick(
+            surface_tension, physics.surface_tension, fastmath)
+        self.diffusion_kinetics = _magick(
+            diffusion_kinetics, physics.diffusion_kinetics, fastmath)
+        self.diffusion_thermics = _magick(
+            diffusion_thermics, physics.diffusion_thermics, fastmath)
+        self.ventilation = _magick(
+            ventilation, physics.ventilation, fastmath)
+        self.state_variable_triplet = _magick(
+            state_variable_triplet, physics.state_variable_triplet, fastmath)
+        self.particle_advection = _magick(
+            particle_advection, physics.particle_advection, fastmath)
+        self.hydrostatics = _magick(
+            hydrostatics, physics.hydrostatics, fastmath)
+        self.freezing_temperature_spectrum = _magick(
+            freezing_temperature_spectrum, physics.freezing_temperature_spectrum, fastmath)
+        self.heterogeneous_ice_nucleation_rate = _magick(
+            heterogeneous_ice_nucleation_rate, physics.heterogeneous_ice_nucleation_rate, fastmath)
         self.__check()
 
     def __str__(self):

@@ -37,21 +37,26 @@ class MomentsMethods:
     def __init__(self):
 
         self.__moments_body_0 = trtc.For(
-            [&#39;idx&#39;, &#39;min_x&#39;, &#39;attr_data&#39;, &#39;x_attr&#39;, &#39;max_x&#39;, &#39;moment_0&#39;, &#39;cell_id&#39;, &#39;n&#39;,
-             &#39;n_ranks&#39;, &#39;moments&#39;, &#39;ranks&#39;,
-             &#39;n_sd&#39;, &#39;n_cell&#39;],
+            (
+                &#39;idx&#39;, &#39;min_x&#39;, &#39;attr_data&#39;, &#39;x_attr&#39;, &#39;max_x&#39;, &#39;moment_0&#39;, &#39;cell_id&#39;, &#39;n&#39;,
+                &#39;n_ranks&#39;, &#39;moments&#39;, &#39;ranks&#39;, &#39;n_sd&#39;, &#39;n_cell&#39;
+             ),
             &#34;fake_i&#34;,
             &#39;&#39;&#39;
             auto i = idx[fake_i];
             if (min_x &lt;= x_attr[i] &amp;&amp; x_attr[i] &lt; max_x) {
                 atomicAdd((real_type*)&amp;moment_0[cell_id[i]], (real_type)(n[i]));
                 for (auto k = 0; k &lt; n_ranks; k+=1) {
-                    atomicAdd((real_type*) &amp;moments[n_cell * k + cell_id[i]], n[i] * pow((real_type)(attr_data[i]), (real_type)(ranks[k])));
+                    auto value = n[i] * pow((real_type)(attr_data[i]), (real_type)(ranks[k]));
+                    atomicAdd((real_type*) &amp;moments[n_cell * k + cell_id[i]], value);
                }
             }
         &#39;&#39;&#39;.replace(&#34;real_type&#34;, PrecisionResolver.get_C_type()))
 
-        self.__moments_body_1 = trtc.For([&#39;n_ranks&#39;, &#39;moments&#39;, &#39;moment_0&#39;, &#39;n_cell&#39;], &#34;c_id&#34;, &#39;&#39;&#39;
+        self.__moments_body_1 = trtc.For(
+            (&#39;n_ranks&#39;, &#39;moments&#39;, &#39;moment_0&#39;, &#39;n_cell&#39;),
+            &#34;c_id&#34;,
+            &#39;&#39;&#39;
             for (auto k = 0; k &lt; n_ranks; k+=1) {
                 if (moment_0[c_id] == 0) {
                     moments[n_cell * k  + c_id] = 0;
@@ -63,21 +68,25 @@ class MomentsMethods:
         &#39;&#39;&#39;)
 
         self.__spectrum_moments_body_0 = trtc.For(
-            [&#39;idx&#39;, &#39;attr_data&#39;, &#39;x_attr&#39;, &#39;moment_0&#39;, &#39;cell_id&#39;, &#39;n&#39;,
-             &#39;x_bins&#39;, &#39;n_bins&#39;, &#39;moments&#39;, &#39;rank&#39;, &#39;n_sd&#39;, &#39;n_cell&#39;],
+            (&#39;idx&#39;, &#39;attr_data&#39;, &#39;x_attr&#39;, &#39;moment_0&#39;, &#39;cell_id&#39;, &#39;n&#39;,
+             &#39;x_bins&#39;, &#39;n_bins&#39;, &#39;moments&#39;, &#39;rank&#39;, &#39;n_sd&#39;, &#39;n_cell&#39;),
             &#34;fake_i&#34;,
             &#39;&#39;&#39;
             auto i = idx[fake_i];
             for (auto k = 0; k &lt; n_bins; k+=1) {
                 if (x_bins[k] &lt;= x_attr[i] and x_attr[i] &lt; x_bins[k + 1]) {
                     atomicAdd((real_type*)&amp;moment_0[n_cell * k + cell_id[i]], (real_type)(n[i]));
-                    atomicAdd((real_type*) &amp;moments[n_cell * k + cell_id[i]], n[i] * pow((real_type)(attr_data[i]), (real_type)(rank)));
+                    auto value = n[i] * pow((real_type)(attr_data[i]), (real_type)(rank));
+                    atomicAdd((real_type*) &amp;moments[n_cell * k + cell_id[i]], value);
                     break;
                 }
             }
         &#39;&#39;&#39;.replace(&#34;real_type&#34;, PrecisionResolver.get_C_type()))
 
-        self.__spectrum_moments_body_1 = trtc.For([&#39;n_bins&#39;, &#39;moments&#39;, &#39;moment_0&#39;, &#39;n_cell&#39;], &#34;i&#34;, &#39;&#39;&#39;
+        self.__spectrum_moments_body_1 = trtc.For(
+            (&#39;n_bins&#39;, &#39;moments&#39;, &#39;moment_0&#39;, &#39;n_cell&#39;),
+            &#34;i&#34;,
+            &#39;&#39;&#39;
             for (auto k = 0; k &lt; n_bins; k+=1) {
                 if (moment_0[n_cell * k + i] == 0) {
                     moments[n_cell * k  + i] = 0;
@@ -178,21 +187,26 @@ class MomentsMethods:
     def __init__(self):
 
         self.__moments_body_0 = trtc.For(
-            [&#39;idx&#39;, &#39;min_x&#39;, &#39;attr_data&#39;, &#39;x_attr&#39;, &#39;max_x&#39;, &#39;moment_0&#39;, &#39;cell_id&#39;, &#39;n&#39;,
-             &#39;n_ranks&#39;, &#39;moments&#39;, &#39;ranks&#39;,
-             &#39;n_sd&#39;, &#39;n_cell&#39;],
+            (
+                &#39;idx&#39;, &#39;min_x&#39;, &#39;attr_data&#39;, &#39;x_attr&#39;, &#39;max_x&#39;, &#39;moment_0&#39;, &#39;cell_id&#39;, &#39;n&#39;,
+                &#39;n_ranks&#39;, &#39;moments&#39;, &#39;ranks&#39;, &#39;n_sd&#39;, &#39;n_cell&#39;
+             ),
             &#34;fake_i&#34;,
             &#39;&#39;&#39;
             auto i = idx[fake_i];
             if (min_x &lt;= x_attr[i] &amp;&amp; x_attr[i] &lt; max_x) {
                 atomicAdd((real_type*)&amp;moment_0[cell_id[i]], (real_type)(n[i]));
                 for (auto k = 0; k &lt; n_ranks; k+=1) {
-                    atomicAdd((real_type*) &amp;moments[n_cell * k + cell_id[i]], n[i] * pow((real_type)(attr_data[i]), (real_type)(ranks[k])));
+                    auto value = n[i] * pow((real_type)(attr_data[i]), (real_type)(ranks[k]));
+                    atomicAdd((real_type*) &amp;moments[n_cell * k + cell_id[i]], value);
                }
             }
         &#39;&#39;&#39;.replace(&#34;real_type&#34;, PrecisionResolver.get_C_type()))
 
-        self.__moments_body_1 = trtc.For([&#39;n_ranks&#39;, &#39;moments&#39;, &#39;moment_0&#39;, &#39;n_cell&#39;], &#34;c_id&#34;, &#39;&#39;&#39;
+        self.__moments_body_1 = trtc.For(
+            (&#39;n_ranks&#39;, &#39;moments&#39;, &#39;moment_0&#39;, &#39;n_cell&#39;),
+            &#34;c_id&#34;,
+            &#39;&#39;&#39;
             for (auto k = 0; k &lt; n_ranks; k+=1) {
                 if (moment_0[c_id] == 0) {
                     moments[n_cell * k  + c_id] = 0;
@@ -204,21 +218,25 @@ class MomentsMethods:
         &#39;&#39;&#39;)
 
         self.__spectrum_moments_body_0 = trtc.For(
-            [&#39;idx&#39;, &#39;attr_data&#39;, &#39;x_attr&#39;, &#39;moment_0&#39;, &#39;cell_id&#39;, &#39;n&#39;,
-             &#39;x_bins&#39;, &#39;n_bins&#39;, &#39;moments&#39;, &#39;rank&#39;, &#39;n_sd&#39;, &#39;n_cell&#39;],
+            (&#39;idx&#39;, &#39;attr_data&#39;, &#39;x_attr&#39;, &#39;moment_0&#39;, &#39;cell_id&#39;, &#39;n&#39;,
+             &#39;x_bins&#39;, &#39;n_bins&#39;, &#39;moments&#39;, &#39;rank&#39;, &#39;n_sd&#39;, &#39;n_cell&#39;),
             &#34;fake_i&#34;,
             &#39;&#39;&#39;
             auto i = idx[fake_i];
             for (auto k = 0; k &lt; n_bins; k+=1) {
                 if (x_bins[k] &lt;= x_attr[i] and x_attr[i] &lt; x_bins[k + 1]) {
                     atomicAdd((real_type*)&amp;moment_0[n_cell * k + cell_id[i]], (real_type)(n[i]));
-                    atomicAdd((real_type*) &amp;moments[n_cell * k + cell_id[i]], n[i] * pow((real_type)(attr_data[i]), (real_type)(rank)));
+                    auto value = n[i] * pow((real_type)(attr_data[i]), (real_type)(rank));
+                    atomicAdd((real_type*) &amp;moments[n_cell * k + cell_id[i]], value);
                     break;
                 }
             }
         &#39;&#39;&#39;.replace(&#34;real_type&#34;, PrecisionResolver.get_C_type()))
 
-        self.__spectrum_moments_body_1 = trtc.For([&#39;n_bins&#39;, &#39;moments&#39;, &#39;moment_0&#39;, &#39;n_cell&#39;], &#34;i&#34;, &#39;&#39;&#39;
+        self.__spectrum_moments_body_1 = trtc.For(
+            (&#39;n_bins&#39;, &#39;moments&#39;, &#39;moment_0&#39;, &#39;n_cell&#39;),
+            &#34;i&#34;,
+            &#39;&#39;&#39;
             for (auto k = 0; k &lt; n_bins; k+=1) {
                 if (moment_0[n_cell * k + i] == 0) {
                     moments[n_cell * k  + i] = 0;

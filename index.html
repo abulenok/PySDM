@@ -43,7 +43,8 @@ notebooks are maintained in the
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;
+<pre><code class="python"># pylint:disable=invalid-name
+&#34;&#34;&#34;
 PySDM offers a set of building blocks for development of atmospheric cloud
 simulation systems revolving around the particle-based microphysics modelling concept
 and the Super-Droplet Method algorithm ([Shima et al. 2009](http://doi.org/10.1002/qj.441))
@@ -84,7 +85,7 @@ except (DistributionNotFound, VersionConflict):
 <dd>
 <div class="desc"><p>Classes representing particle properties such as
 <code><a title="PySDM.attributes.physics.multiplicities.Multiplicities" href="attributes/physics/multiplicities.html#PySDM.attributes.physics.multiplicities.Multiplicities">Multiplicities</a></code>,
-<code><a title="PySDM.attributes.chemistry.pH.pH" href="attributes/chemistry/pH.html#PySDM.attributes.chemistry.pH.pH">pH</a></code>, …</p></div>
+<code>PySDM.attributes.chemistry.pH.pH</code>, …</p></div>
 </dd>
 <dt><code class="name"><a title="PySDM.backends" href="backends/index.html">PySDM.backends</a></code></dt>
 <dd>
@@ -139,7 +140,8 @@ and <code>GPU</code>=<code><a title="PySDM.backends.thrustRTC.thrustRTC.ThrustRT
 </dd>
 <dt><code class="name"><a title="PySDM.storages" href="storages/index.html">PySDM.storages</a></code></dt>
 <dd>
-<div class="desc"><p>Indirection layer adapting the interfaces of underlying array classes (<code>NumPy</code>.<code>ndarray</code> or <code>ThrustRTC</code>.<code>DVVector</code>)</p></div>
+<div class="desc"><p>Indirection layer adapting the interfaces of underlying array classes
+(<code>NumPy</code>.<code>ndarray</code> or <code>ThrustRTC</code>.<code>DVVector</code>)</p></div>
 </dd>
 </dl>
 </section>
