@@ -1,0 +1,2757 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>PySDM.backends.impl_numba.methods.collisions_methods API documentation</title>
+<meta name="description" content="CPU implementation of backend methods for particle collisions" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>PySDM.backends.impl_numba.methods.collisions_methods</code></h1>
+</header>
+<section id="section-intro">
+<p>CPU implementation of backend methods for particle collisions</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+CPU implementation of backend methods for particle collisions
+&#34;&#34;&#34;
+# pylint: disable=too-many-lines
+import numba
+import numpy as np
+
+from PySDM.backends.impl_common.backend_methods import BackendMethods
+from PySDM.backends.impl_numba import conf
+from PySDM.backends.impl_numba.atomic_operations import atomic_add
+from PySDM.backends.impl_numba.storage import Storage
+from PySDM.backends.impl_numba.warnings import warn
+from PySDM.physics.constants import PI, PI_4_3, si, sqrt_pi, sqrt_two
+
+CM = si.cm
+
+
+@numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+def pair_indices(i, idx, is_first_in_pair):
+    &#34;&#34;&#34;given permutation array `idx` and `is_first_in_pair` flag array,
+    returns indices `j` and `k` of droplets within pair `i`
+    such that `j` points to the droplet with higher (or equal) multiplicity
+    &#34;&#34;&#34;
+    offset = 1 - is_first_in_pair[2 * i]
+    j = idx[2 * i + offset]
+    k = idx[2 * i + 1 + offset]
+    return j, k
+
+
+@numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+def flag_zero_multiplicity(j, k, multiplicity, healthy):
+    if multiplicity[k] == 0 or multiplicity[j] == 0:
+        healthy[0] = 0
+
+
+@numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+def coalesce(  # pylint: disable=too-many-arguments
+    i, j, k, cid, multiplicity, gamma, attributes, coalescence_rate
+):
+    atomic_add(coalescence_rate, cid, gamma[i] * multiplicity[k])
+    new_n = multiplicity[j] - gamma[i] * multiplicity[k]
+    if new_n &gt; 0:
+        multiplicity[j] = new_n
+        for a in range(0, len(attributes)):
+            attributes[a, k] += gamma[i] * attributes[a, j]
+    else:  # new_n == 0
+        multiplicity[j] = multiplicity[k] // 2
+        multiplicity[k] = multiplicity[k] - multiplicity[j]
+        for a in range(0, len(attributes)):
+            attributes[a, j] = gamma[i] * attributes[a, j] + attributes[a, k]
+            attributes[a, k] = attributes[a, j]
+
+
+@numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+def break_up(  # pylint: disable=too-many-arguments,unused-argument,too-many-locals
+    i,
+    j,
+    k,
+    cid,
+    multiplicity,
+    gamma,
+    attributes,
+    n_fragment,
+    fragment_size,
+    max_multiplicity,
+    breakup_rate,
+    breakup_rate_deficit,
+    warn_overflows,
+    volume,
+):  # pylint: disable=too-many-branches
+    overflow_flag = False
+    take_from_j_test = multiplicity[k]
+    new_mult_k_test = 0
+    new_mult_k = multiplicity[k]
+    take_from_j = 0
+    gamma_tmp = 0
+    gamma_deficit = gamma[i]
+    for m in range(int(gamma[i])):
+        take_from_j_test = new_mult_k_test + take_from_j_test
+        new_mult_k_test = (
+            new_mult_k_test * (volume[j] / fragment_size[i])
+            + n_fragment[i] * multiplicity[k]
+        )
+        # check for overflow of multiplicity
+        if new_mult_k_test &gt; max_multiplicity:
+            overflow_flag = True
+            break
+        # check for new_n &gt; 0
+        if take_from_j_test &gt; multiplicity[j]:
+            break
+
+        # all tests passed
+        take_from_j = take_from_j_test
+        new_mult_k = new_mult_k_test
+        gamma_tmp = m + 1
+        gamma_deficit = gamma[i] - gamma_tmp
+    # 2. Compute the new multiplicities and particle sizes, with rounding
+    for a in range(0, len(attributes)):
+        attributes[a, k] *= multiplicity[k]
+        attributes[a, k] += take_from_j * attributes[a, j]
+        attributes[a, k] /= new_mult_k
+    if multiplicity[j] &gt; take_from_j:
+        nj = multiplicity[j] - take_from_j
+        nk = new_mult_k
+    else:
+        nj = new_mult_k / 2
+        if round(nj) == 0:
+            atomic_add(breakup_rate_deficit, cid, gamma[i] * multiplicity[k])
+            return
+        nk = nj
+        for a in range(0, len(attributes)):
+            attributes[a, j] = attributes[a, k]
+    # add up the product
+    atomic_add(breakup_rate, cid, gamma_tmp * multiplicity[k])
+    atomic_add(breakup_rate_deficit, cid, gamma_deficit * multiplicity[k])
+    # perform rounding as necessary
+    multiplicity[j] = round(nj)
+    multiplicity[k] = round(nk)
+    factor_j = nj / multiplicity[j]
+    factor_k = nk / multiplicity[k]
+    for a in range(0, len(attributes)):
+        attributes[a, k] *= factor_k
+        attributes[a, j] *= factor_j
+
+    if overflow_flag:
+        if warn_overflows:
+            warn(&#34;overflow&#34;, __file__)
+
+
+@numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+def break_up_while(  # pylint: disable=too-many-arguments,unused-argument,too-many-statements,too-many-locals
+    i,
+    j,
+    k,
+    cid,
+    multiplicity,
+    gamma,
+    attributes,
+    n_fragment,
+    fragment_size,
+    max_multiplicity,
+    breakup_rate,
+    breakup_rate_deficit,
+    warn_overflows,
+    volume,
+):  # pylint: disable=too-many-branches
+    gamma_tmp = 0
+    gamma_deficit = gamma[i]
+    overflow_flag = False
+    while gamma_deficit &gt; 0:
+        if multiplicity[k] == multiplicity[j]:
+            take_from_j = multiplicity[j]
+            new_mult_k = (volume[j] + volume[k]) / fragment_size[i] * multiplicity[k]
+            # check for overflow
+            if new_mult_k &gt; max_multiplicity:
+                atomic_add(breakup_rate_deficit, cid, gamma_deficit * multiplicity[k])
+                overflow_flag = True
+                break
+            gamma_tmp = gamma_deficit
+
+        else:
+            # reorder droplets if necessary
+            if multiplicity[k] &gt; multiplicity[j]:
+                j, k = k, j
+            take_from_j_test = multiplicity[k]
+            take_from_j = 0
+            new_mult_k_test = 0
+            new_mult_k = multiplicity[k]
+            for m in range(int(gamma_deficit)):
+                take_from_j_test = new_mult_k_test + take_from_j_test
+                nfi = (volume[j] + volume[k]) / fragment_size[i]
+                new_mult_k_test = (
+                    new_mult_k_test * (volume[j] / fragment_size[i])
+                    + nfi * multiplicity[k]
+                )
+                # check for overflow of multiplicity
+                if new_mult_k_test &gt; max_multiplicity:
+                    overflow_flag = True
+                    break
+                # check for new_n &gt; 0
+                if take_from_j_test &gt; multiplicity[j]:
+                    break
+
+                # all tests passed
+                take_from_j = take_from_j_test
+                new_mult_k = new_mult_k_test
+                gamma_tmp = m + 1
+        # Compute the new multiplicities and particle sizes, with rounding
+        for a in range(0, len(attributes)):
+            attributes[a, k] *= multiplicity[k]
+            attributes[a, k] += take_from_j * attributes[a, j]
+            attributes[a, k] /= new_mult_k
+        if multiplicity[j] &gt; take_from_j:
+            nj = multiplicity[j] - take_from_j
+            nk = new_mult_k
+        else:
+            nj = new_mult_k / 2
+            if round(nj) == 0:
+                atomic_add(breakup_rate_deficit, cid, gamma_tmp * multiplicity[k])
+                return
+            nk = nj
+            for a in range(0, len(attributes)):
+                attributes[a, j] = attributes[a, k]
+
+        atomic_add(breakup_rate, cid, gamma_tmp * multiplicity[k])
+        # perform rounding as necessary
+        multiplicity[j] = round(nj)
+        multiplicity[k] = round(nk)
+        factor_j = nj / multiplicity[j]
+        factor_k = nk / multiplicity[k]
+        for a in range(0, len(attributes)):
+            attributes[a, k] *= factor_k
+            attributes[a, j] *= factor_j
+        gamma_deficit -= gamma_tmp
+
+    atomic_add(breakup_rate_deficit, cid, gamma_deficit * multiplicity[k])
+
+    if overflow_flag:
+        if warn_overflows:
+            warn(&#34;overflow&#34;, __file__)
+
+
+@numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+def straub_Nr(  # pylint: disable=too-many-arguments,unused-argument
+    i,
+    Nr1,
+    Nr2,
+    Nr3,
+    Nr4,
+    Nrt,
+    CW,
+    gam,
+):  # pylint: disable=too-many-branches`
+    if gam[i] * CW[i] &gt;= 7.0:
+        Nr1[i] = 0.088 * (gam[i] * CW[i] - 7.0)
+    if CW[i] &gt;= 21.0:
+        Nr2[i] = 0.22 * (CW[i] - 21.0)
+        if CW[i] &lt;= 46.0:
+            Nr3[i] = 0.04 * (46.0 - CW[i])
+    else:
+        Nr3[i] = 1.0
+    Nr4[i] = 1.0
+    Nrt[i] = Nr1[i] + Nr2[i] + Nr3[i] + Nr4[i]
+
+
+@numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+def straub_p1(  # pylint: disable=too-many-arguments,unused-argument
+    i,
+    CW,
+    frag_size,
+    rand,
+):
+    E_D1 = 0.04 * CM
+    delD1 = 0.125 * CW[i] ** (1 / 2)
+    var_1 = delD1**2 / 12
+    sigma1 = np.sqrt(np.log(var_1 / E_D1**2 + 1))
+    mu1 = np.log(E_D1) - sigma1**2 / 2
+    X = rand[i]
+
+    frag_size[i] = np.exp(
+        mu1
+        - sigma1 / sqrt_two / sqrt_pi / np.log(2) * np.log((1 / 2 + X) / (3 / 2 - X))
+    )
+    frag_size[i] = PI / 6 * frag_size[i] ** 3
+
+
+@numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+def straub_p2(  # pylint: disable=too-many-arguments,unused-argument
+    i,
+    CW,
+    frag_size,
+    rand,
+):
+    mu2 = 0.095 * CM
+    delD2 = 0.22 * (CW[i] - 21.0)
+    sigma2 = delD2**2 / 12
+    X = rand[i]
+
+    frag_size[i] = mu2 - sigma2 / sqrt_two / sqrt_pi / np.log(2) * np.log(
+        (1 / 2 + X) / (3 / 2 - X)
+    )
+    frag_size[i] = PI / 6 * frag_size[i] ** 3
+
+
+@numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+def straub_p3(  # pylint: disable=too-many-arguments,unused-argument
+    i,
+    CW,
+    ds,
+    frag_size,
+    rand,
+):
+    mu3 = 0.9 * ds[i]
+    delD3 = 0.01 * (0.76 * CW[i] ** 1 / 2 + 1.0)
+    sigma3 = delD3**2 / 12
+    X = rand[i]
+
+    frag_size[i] = mu3 - sigma3 / sqrt_two / sqrt_pi / np.log(2) * np.log(
+        (1 / 2 + X) / (3 / 2 - X)
+    )
+    frag_size[i] = PI / 6 * frag_size[i] ** 3
+
+
+@numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+def straub_p4(  # pylint: disable=too-many-arguments,unused-argument,too-many-locals
+    i, CW, ds, v_max, frag_size, Nr1, Nr2, Nr3
+):
+    E_D1 = 0.04 * CM
+    delD1 = 0.125 * CW[i] ** (1 / 2)
+    var_1 = delD1**2 / 12
+    sigma1 = np.sqrt(np.log(var_1 / E_D1**2 + 1))
+    mu1 = np.log(E_D1) - sigma1**2 / 2
+    mu2 = 0.095 * CM
+    delD2 = 0.22 * (CW[i] - 21.0)
+    sigma2 = delD2**2 / 12
+    mu3 = 0.9 * ds[i]
+    delD3 = 0.01 * (0.76 * CW[i] ** 1 / 2 + 1.0)
+    sigma3 = delD3**2 / 12
+
+    M31 = Nr1[i] * np.exp(3 * mu1 + 9 * sigma1**2 / 2)
+    M32 = Nr2[i] * (mu2**3 + 3 * mu2 * sigma2**2)
+    M33 = Nr3[i] * (mu3**3 + 3 * mu3 * sigma3**2)
+
+    M34 = v_max[i] / PI_4_3 * 8 + ds[i] ** 3 - M31 - M32 - M33
+    frag_size[i] = PI / 6 * M34
+
+
+class CollisionsMethods(BackendMethods):
+    @staticmethod
+    @numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+    def __adaptive_sdm_end_body(dt_left, n_cell, cell_start):
+        end = 0
+        for i in range(n_cell - 1, -1, -1):
+            if dt_left[i] == 0:
+                continue
+            end = cell_start[i + 1]
+            break
+        return end
+
+    def adaptive_sdm_end(self, dt_left, cell_start):
+        return self.__adaptive_sdm_end_body(dt_left.data, len(dt_left), cell_start.data)
+
+    @staticmethod
+    @numba.njit(**conf.JIT_FLAGS)
+    # pylint: disable=too-many-arguments,too-many-locals
+    def __adaptive_sdm_gamma_body(
+        gamma,
+        idx,
+        length,
+        multiplicity,
+        cell_id,
+        dt_left,
+        dt,
+        dt_range,
+        is_first_in_pair,
+        stats_n_substep,
+        stats_dt_min,
+    ):
+        dt_todo = np.empty_like(dt_left)
+        for cid in numba.prange(len(dt_todo)):  # pylint: disable=not-an-iterable
+            dt_todo[cid] = min(dt_left[cid], dt_range[1])
+        for i in range(length // 2):  # TODO #571
+            if gamma[i] == 0:
+                continue
+            j, k = pair_indices(i, idx, is_first_in_pair)
+            prop = multiplicity[j] // multiplicity[k]
+            dt_optimal = dt * prop / gamma[i]
+            cid = cell_id[j]
+            dt_optimal = max(dt_optimal, dt_range[0])
+            dt_todo[cid] = min(dt_todo[cid], dt_optimal)
+            stats_dt_min[cid] = min(stats_dt_min[cid], dt_optimal)
+        for i in numba.prange(length // 2):  # pylint: disable=not-an-iterable
+            if gamma[i] == 0:
+                continue
+            j, _ = pair_indices(i, idx, is_first_in_pair)
+            gamma[i] *= dt_todo[cell_id[j]] / dt
+        for cid in numba.prange(len(dt_todo)):  # pylint: disable=not-an-iterable
+            dt_left[cid] -= dt_todo[cid]
+            if dt_todo[cid] &gt; 0:
+                stats_n_substep[cid] += 1
+
+    def adaptive_sdm_gamma(
+        self,
+        *,
+        gamma,
+        n,
+        cell_id,
+        dt_left,
+        dt,
+        dt_range,
+        is_first_in_pair,
+        stats_n_substep,
+        stats_dt_min,
+    ):
+        return self.__adaptive_sdm_gamma_body(
+            gamma.data,
+            n.idx.data,
+            len(n),
+            n.data,
+            cell_id.data,
+            dt_left.data,
+            dt,
+            dt_range,
+            is_first_in_pair.indicator.data,
+            stats_n_substep.data,
+            stats_dt_min.data,
+        )
+
+    @staticmethod
+    # @numba.njit(**conf.JIT_FLAGS)  # note: as of Numba 0.51, np.dot() does not support ints
+    def __cell_id_body(cell_id, cell_origin, strides):
+        cell_id[:] = np.dot(strides, cell_origin)
+
+    def cell_id(self, cell_id, cell_origin, strides):
+        return self.__cell_id_body(cell_id.data, cell_origin.data, strides.data)
+
+    @staticmethod
+    @numba.njit(**conf.JIT_FLAGS)
+    def __collision_coalescence_body(
+        *,
+        multiplicity,
+        idx,
+        length,
+        attributes,
+        gamma,
+        healthy,
+        cell_id,
+        coalescence_rate,
+        is_first_in_pair,
+    ):
+        for i in numba.prange(  # pylint: disable=not-an-iterable,too-many-nested-blocks
+            length // 2
+        ):
+            if gamma[i] == 0:
+                continue
+            j, k = pair_indices(i, idx, is_first_in_pair)
+            coalesce(
+                i, j, k, cell_id[j], multiplicity, gamma, attributes, coalescence_rate
+            )
+            flag_zero_multiplicity(j, k, multiplicity, healthy)
+
+    def collision_coalescence(
+        self,
+        *,
+        multiplicity,
+        idx,
+        attributes,
+        gamma,
+        healthy,
+        cell_id,
+        coalescence_rate,
+        is_first_in_pair,
+    ):
+        self.__collision_coalescence_body(
+            multiplicity=multiplicity.data,
+            idx=idx.data,
+            length=len(idx),
+            attributes=attributes.data,
+            gamma=gamma.data,
+            healthy=healthy.data,
+            cell_id=cell_id.data,
+            coalescence_rate=coalescence_rate.data,
+            is_first_in_pair=is_first_in_pair.indicator.data,
+        )
+
+    @staticmethod
+    @numba.njit(**conf.JIT_FLAGS)
+    def __collision_coalescence_breakup_body(
+        *,
+        multiplicity,
+        idx,
+        length,
+        attributes,
+        gamma,
+        rand,
+        Ec,
+        Eb,
+        n_fragment,
+        fragment_size,
+        healthy,
+        cell_id,
+        coalescence_rate,
+        breakup_rate,
+        breakup_rate_deficit,
+        is_first_in_pair,
+        max_multiplicity,
+        warn_overflows,
+        volume,
+        handle_all_breakups,
+    ):
+        # pylint: disable=not-an-iterable,too-many-nested-blocks,too-many-locals
+        for i in numba.prange(length // 2):
+            if gamma[i] == 0:
+                continue
+            bouncing = rand[i] - (Ec[i] + (1 - Ec[i]) * (Eb[i])) &gt; 0
+            if bouncing:
+                continue
+            j, k = pair_indices(i, idx, is_first_in_pair)
+
+            if rand[i] - Ec[i] &lt; 0:
+                coalesce(
+                    i,
+                    j,
+                    k,
+                    cell_id[j],
+                    multiplicity,
+                    gamma,
+                    attributes,
+                    coalescence_rate,
+                )
+            elif handle_all_breakups:
+                break_up_while(
+                    i,
+                    j,
+                    k,
+                    cell_id[j],
+                    multiplicity,
+                    gamma,
+                    attributes,
+                    n_fragment,
+                    fragment_size,
+                    max_multiplicity,
+                    breakup_rate,
+                    breakup_rate_deficit,
+                    warn_overflows,
+                    volume,
+                )
+            else:
+                break_up(
+                    i,
+                    j,
+                    k,
+                    cell_id[j],
+                    multiplicity,
+                    gamma,
+                    attributes,
+                    n_fragment,
+                    fragment_size,
+                    max_multiplicity,
+                    breakup_rate,
+                    breakup_rate_deficit,
+                    warn_overflows,
+                    volume,
+                )
+            flag_zero_multiplicity(j, k, multiplicity, healthy)
+
+    def collision_coalescence_breakup(
+        self,
+        *,
+        multiplicity,
+        idx,
+        attributes,
+        gamma,
+        rand,
+        Ec,
+        Eb,
+        n_fragment,
+        fragment_size,
+        healthy,
+        cell_id,
+        coalescence_rate,
+        breakup_rate,
+        breakup_rate_deficit,
+        is_first_in_pair,
+        warn_overflows,
+        volume,
+        handle_all_breakups,
+    ):
+        # pylint: disable=too-many-locals
+        max_multiplicity = np.iinfo(multiplicity.data.dtype).max // 2e5
+        self.__collision_coalescence_breakup_body(
+            multiplicity=multiplicity.data,
+            idx=idx.data,
+            length=len(idx),
+            attributes=attributes.data,
+            gamma=gamma.data,
+            rand=rand.data,
+            Ec=Ec.data,
+            Eb=Eb.data,
+            n_fragment=n_fragment.data,
+            fragment_size=fragment_size.data,
+            healthy=healthy.data,
+            cell_id=cell_id.data,
+            coalescence_rate=coalescence_rate.data,
+            breakup_rate=breakup_rate.data,
+            breakup_rate_deficit=breakup_rate_deficit.data,
+            is_first_in_pair=is_first_in_pair.indicator.data,
+            max_multiplicity=max_multiplicity,
+            warn_overflows=warn_overflows,
+            volume=volume.data,
+            handle_all_breakups=handle_all_breakups,
+        )
+
+    @staticmethod
+    @numba.njit(**{**conf.JIT_FLAGS})
+    # pylint: disable=too-many-arguments
+    def __fragmentation_limiters(n_fragment, frag_size, v_max, vmin, nfmax, x_plus_y):
+        for i in numba.prange(len(frag_size)):  # pylint: disable=not-an-iterable
+            frag_size[i] = min(frag_size[i], v_max[i])
+            frag_size[i] = max(frag_size[i], vmin)
+            if nfmax is not None:
+                if x_plus_y[i] / frag_size[i] &gt; nfmax:
+                    frag_size[i] = x_plus_y[i] / nfmax
+            if frag_size[i] == 0.0:
+                frag_size[i] = x_plus_y[i]
+                n_fragment[i] = 1.0
+            n_fragment[i] = x_plus_y[i] / frag_size[i]
+
+    def fragmentation_limiters(
+        self, *, n_fragment, frag_size, v_max, vmin, nfmax, x_plus_y
+    ):
+        self.__fragmentation_limiters(
+            n_fragment=n_fragment.data,
+            frag_size=frag_size.data,
+            v_max=v_max.data,
+            vmin=vmin,
+            nfmax=nfmax,
+            x_plus_y=x_plus_y.data,
+        )
+
+    @staticmethod
+    @numba.njit(**{**conf.JIT_FLAGS})
+    def __slams_fragmentation_body(n_fragment, frag_size, x_plus_y, probs, rand):
+        for i in numba.prange(len(n_fragment)):  # pylint: disable=not-an-iterable
+            probs[i] = 0.0
+            n_fragment[i] = 1
+            for n in range(22):
+                probs[i] += 0.91 * (n + 2) ** (-1.56)
+                if rand[i] &lt; probs[i]:
+                    n_fragment[i] = n + 2
+                    break
+            frag_size[i] = x_plus_y[i] / n_fragment[i]
+
+    def slams_fragmentation(
+        self, n_fragment, frag_size, v_max, x_plus_y, probs, rand, vmin, nfmax
+    ):  # pylint: disable=too-many-arguments
+        self.__slams_fragmentation_body(
+            n_fragment.data, frag_size.data, x_plus_y.data, probs.data, rand.data
+        )
+        self.__fragmentation_limiters(
+            n_fragment=n_fragment.data,
+            frag_size=frag_size.data,
+            v_max=v_max.data,
+            vmin=vmin,
+            nfmax=nfmax,
+            x_plus_y=x_plus_y.data,
+        )
+
+    @staticmethod
+    @numba.njit(**{**conf.JIT_FLAGS})
+    # pylint: disable=too-many-arguments
+    def __exp_fragmentation_body(*, scale, frag_size, rand, tol=1e-5):
+        &#34;&#34;&#34;
+        Exponential PDF
+        &#34;&#34;&#34;
+        for i in numba.prange(len(frag_size)):  # pylint: disable=not-an-iterable
+            frag_size[i] = -scale * np.log(max(1 - rand[i], tol))
+
+    def exp_fragmentation(
+        self,
+        *,
+        n_fragment,
+        scale,
+        frag_size,
+        v_max,
+        x_plus_y,
+        rand,
+        vmin,
+        nfmax,
+        tol=1e-5,
+    ):
+        self.__exp_fragmentation_body(
+            scale=scale,
+            frag_size=frag_size.data,
+            rand=rand.data,
+            tol=tol,
+        )
+        self.__fragmentation_limiters(
+            n_fragment=n_fragment.data,
+            frag_size=frag_size.data,
+            v_max=v_max.data,
+            x_plus_y=x_plus_y.data,
+            vmin=vmin,
+            nfmax=nfmax,
+        )
+
+    @staticmethod
+    @numba.njit(**{**conf.JIT_FLAGS})
+    # pylint: disable=too-many-arguments
+    def __feingold1988_fragmentation_body(*, scale, frag_size, x_plus_y, rand, fragtol):
+        &#34;&#34;&#34;
+        Scaled exponential PDF
+        &#34;&#34;&#34;
+        for i in numba.prange(len(frag_size)):  # pylint: disable=not-an-iterable
+            log_arg = max(1 - rand[i] * scale / x_plus_y[i], fragtol)
+            frag_size[i] = -scale * np.log(log_arg)
+
+    def feingold1988_fragmentation(
+        self,
+        *,
+        n_fragment,
+        scale,
+        frag_size,
+        v_max,
+        x_plus_y,
+        rand,
+        fragtol,
+        vmin,
+        nfmax,
+    ):
+        self.__feingold1988_fragmentation_body(
+            scale=scale,
+            frag_size=frag_size.data,
+            x_plus_y=x_plus_y.data,
+            rand=rand.data,
+            fragtol=fragtol,
+        )
+
+        self.__fragmentation_limiters(
+            n_fragment=n_fragment.data,
+            frag_size=frag_size.data,
+            v_max=v_max.data,
+            x_plus_y=x_plus_y.data,
+            vmin=vmin,
+            nfmax=nfmax,
+        )
+
+    @staticmethod
+    # pylint: disable=too-many-arguments
+    @numba.njit(**{**conf.JIT_FLAGS})
+    def __gauss_fragmentation_body(*, mu, sigma, frag_size, rand):
+        &#34;&#34;&#34;
+        Gaussian PDF
+        CDF = 1/2(1 + erf(x/sqrt(2)));
+        approximate as erf(x) ~ tanh(ax) with a = sqrt(pi)log(2) as in Vedder 1987
+        &#34;&#34;&#34;
+        for i in numba.prange(len(frag_size)):  # pylint: disable=not-an-iterable
+            frag_size[i] = mu - sigma / sqrt_two / sqrt_pi / np.log(2) * np.log(
+                (1 / 2 + rand[i]) / (3 / 2 - rand[i])
+            )
+
+    def gauss_fragmentation(
+        self, *, n_fragment, mu, sigma, frag_size, v_max, x_plus_y, rand, vmin, nfmax
+    ):
+        self.__gauss_fragmentation_body(
+            mu=mu,
+            sigma=sigma,
+            frag_size=frag_size.data,
+            rand=rand.data,
+        )
+        self.__fragmentation_limiters(
+            n_fragment=n_fragment.data,
+            frag_size=frag_size.data,
+            v_max=v_max.data,
+            x_plus_y=x_plus_y.data,
+            vmin=vmin,
+            nfmax=nfmax,
+        )
+
+    @staticmethod
+    # pylint: disable=too-many-arguments
+    @numba.njit(**(conf.JIT_FLAGS))
+    def __straub_fragmentation_body(
+        *, CW, gam, ds, v_max, frag_size, rand, Nr1, Nr2, Nr3, Nr4, Nrt
+    ):
+        for i in numba.prange(len(frag_size)):  # pylint: disable=not-an-iterable
+            straub_Nr(i, Nr1, Nr2, Nr3, Nr4, Nrt, CW, gam)
+            if rand[i] &lt; Nr1[i] / Nrt[i]:
+                rand[i] = rand[i] * Nrt[i] / Nr1[i]
+                straub_p1(i, CW, frag_size, rand)
+            elif rand[i] &lt; (Nr2[i] + Nr1[i]) / Nrt[i]:
+                rand[i] = (rand[i] * Nrt[i] - Nr1[i]) / (Nr2[i] - Nr1[i])
+                straub_p2(i, CW, frag_size, rand)
+            elif rand[i] &lt; (Nr3[i] + Nr2[i] + Nr1[i]) / Nrt[i]:
+                rand[i] = (rand[i] * Nrt[i] - Nr2[i]) / (Nr3[i] - Nr2[i])
+                straub_p3(i, CW, ds, frag_size, rand)
+            else:
+                straub_p4(i, CW, ds, v_max, frag_size, Nr1, Nr2, Nr3)
+
+    def straub_fragmentation(
+        # pylint: disable=too-many-arguments,too-many-locals
+        self,
+        *,
+        n_fragment,
+        CW,
+        gam,
+        ds,
+        frag_size,
+        v_max,
+        x_plus_y,
+        rand,
+        vmin,
+        nfmax,
+        Nr1,
+        Nr2,
+        Nr3,
+        Nr4,
+        Nrt,
+    ):
+        self.__straub_fragmentation_body(
+            CW=CW.data,
+            gam=gam.data,
+            ds=ds.data,
+            frag_size=frag_size.data,
+            v_max=v_max.data,
+            rand=rand.data,
+            Nr1=Nr1.data,
+            Nr2=Nr2.data,
+            Nr3=Nr3.data,
+            Nr4=Nr4.data,
+            Nrt=Nrt.data,
+        )
+        self.__fragmentation_limiters(
+            n_fragment=n_fragment.data,
+            frag_size=frag_size.data,
+            v_max=v_max.data,
+            x_plus_y=x_plus_y.data,
+            vmin=vmin,
+            nfmax=nfmax,
+        )
+
+    @staticmethod
+    @numba.njit(**conf.JIT_FLAGS)
+    # pylint: disable=too-many-arguments,too-many-locals
+    def __compute_gamma_body(
+        gamma,
+        rand,
+        idx,
+        length,
+        multiplicity,
+        cell_id,
+        collision_rate_deficit,
+        collision_rate,
+        is_first_in_pair,
+    ):
+        &#34;&#34;&#34;
+        return in &#34;gamma&#34; array gamma (see: http://doi.org/10.1002/qj.441, section 5)
+        formula:
+        gamma = floor(prob) + 1 if rand &lt;  prob - floor(prob)
+              = floor(prob)     if rand &gt;= prob - floor(prob)
+        &#34;&#34;&#34;
+        for i in numba.prange(length // 2):  # pylint: disable=not-an-iterable
+            gamma[i] = np.ceil(gamma[i] - rand[i])
+
+            no_collision = gamma[i] == 0
+            if no_collision:
+                continue
+
+            j, k = pair_indices(i, idx, is_first_in_pair)
+            prop = multiplicity[j] // multiplicity[k]
+            g = min(int(gamma[i]), prop)
+            cid = cell_id[j]
+            atomic_add(collision_rate, cid, g * multiplicity[k])
+            atomic_add(
+                collision_rate_deficit, cid, (int(gamma[i]) - g) * multiplicity[k]
+            )
+            gamma[i] = g
+
+    def compute_gamma(
+        self,
+        *,
+        gamma,
+        rand,
+        multiplicity,
+        cell_id,
+        collision_rate_deficit,
+        collision_rate,
+        is_first_in_pair,
+    ):
+        return self.__compute_gamma_body(
+            gamma.data,
+            rand.data,
+            multiplicity.idx.data,
+            len(multiplicity),
+            multiplicity.data,
+            cell_id.data,
+            collision_rate_deficit.data,
+            collision_rate.data,
+            is_first_in_pair.indicator.data,
+        )
+
+    @staticmethod
+    def make_cell_caretaker(idx, cell_start, scheme=&#34;default&#34;):
+        class CellCaretaker:  # pylint: disable=too-few-public-methods
+            def __init__(self, idx, cell_start, scheme):
+                if scheme == &#34;default&#34;:
+                    if conf.JIT_FLAGS[&#34;parallel&#34;]:
+                        scheme = &#34;counting_sort_parallel&#34;
+                    else:
+                        scheme = &#34;counting_sort&#34;
+                self.scheme = scheme
+                if scheme in (&#34;counting_sort&#34;, &#34;counting_sort_parallel&#34;):
+                    self.tmp_idx = Storage.empty(idx.shape, idx.dtype)
+                if scheme == &#34;counting_sort_parallel&#34;:
+                    self.cell_starts = Storage.empty(
+                        (
+                            numba.config.NUMBA_NUM_THREADS,  # pylint: disable=no-member
+                            len(cell_start),
+                        ),
+                        dtype=int,
+                    )
+
+            def __call__(self, cell_id, cell_idx, cell_start, idx):
+                length = len(idx)
+                if self.scheme == &#34;counting_sort&#34;:
+                    CollisionsMethods._counting_sort_by_cell_id_and_update_cell_start(
+                        self.tmp_idx.data,
+                        idx.data,
+                        cell_id.data,
+                        cell_idx.data,
+                        length,
+                        cell_start.data,
+                    )
+                elif self.scheme == &#34;counting_sort_parallel&#34;:
+                    CollisionsMethods._parallel_counting_sort_by_cell_id_and_update_cell_start(
+                        self.tmp_idx.data,
+                        idx.data,
+                        cell_id.data,
+                        cell_idx.data,
+                        length,
+                        cell_start.data,
+                        self.cell_starts.data,
+                    )
+                idx.data, self.tmp_idx.data = self.tmp_idx.data, idx.data
+
+        return CellCaretaker(idx, cell_start, scheme)
+
+    @staticmethod
+    @numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+    # pylint: disable=too-many-arguments
+    def __normalize_body(
+        prob, cell_id, cell_idx, cell_start, norm_factor, timestep, dv
+    ):
+        n_cell = cell_start.shape[0] - 1
+        for i in range(n_cell):
+            sd_num = cell_start[i + 1] - cell_start[i]
+            if sd_num &lt; 2:
+                norm_factor[i] = 0
+            else:
+                norm_factor[i] = (
+                    timestep / dv * sd_num * (sd_num - 1) / 2 / (sd_num // 2)
+                )
+        for d in numba.prange(prob.shape[0]):  # pylint: disable=not-an-iterable
+            prob[d] *= norm_factor[cell_idx[cell_id[d]]]
+
+    # pylint: disable=too-many-arguments
+    def normalize(self, prob, cell_id, cell_idx, cell_start, norm_factor, timestep, dv):
+        return self.__normalize_body(
+            prob.data,
+            cell_id.data,
+            cell_idx.data,
+            cell_start.data,
+            norm_factor.data,
+            timestep,
+            dv,
+        )
+
+    @staticmethod
+    @numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+    def remove_zero_n_or_flagged(multiplicity, idx, length) -&gt; int:
+        flag = len(idx)
+        new_length = length
+        i = 0
+        while i &lt; new_length:
+            if idx[i] == flag or multiplicity[idx[i]] == 0:
+                new_length -= 1
+                idx[i] = idx[new_length]
+                idx[new_length] = flag
+            else:
+                i += 1
+        return new_length
+
+    @staticmethod
+    @numba.njit(**conf.JIT_FLAGS)
+    # pylint: disable=too-many-arguments
+    def _counting_sort_by_cell_id_and_update_cell_start(
+        new_idx, idx, cell_id, cell_idx, length, cell_start
+    ):
+        cell_end = cell_start
+        # Warning: Assuming len(cell_end) == n_cell+1
+        cell_end[:] = 0
+        for i in range(length):
+            cell_end[cell_idx[cell_id[idx[i]]]] += 1
+        for i in range(1, len(cell_end)):
+            cell_end[i] += cell_end[i - 1]
+        for i in range(length - 1, -1, -1):
+            cell_end[cell_idx[cell_id[idx[i]]]] -= 1
+            new_idx[cell_end[cell_idx[cell_id[idx[i]]]]] = idx[i]
+
+    @staticmethod
+    @numba.njit(**conf.JIT_FLAGS)
+    # pylint: disable=too-many-arguments
+    def _parallel_counting_sort_by_cell_id_and_update_cell_start(
+        new_idx, idx, cell_id, cell_idx, length, cell_start, cell_start_p
+    ):
+        cell_end_thread = cell_start_p
+        # Warning: Assuming len(cell_end) == n_cell+1
+        thread_num = cell_end_thread.shape[0]
+        for t in numba.prange(thread_num):  # pylint: disable=not-an-iterable
+            cell_end_thread[t, :] = 0
+            for i in range(
+                t * length // thread_num,
+                (t + 1) * length // thread_num if t &lt; thread_num - 1 else length,
+            ):
+                cell_end_thread[t, cell_idx[cell_id[idx[i]]]] += 1
+
+        cell_start[:] = np.sum(cell_end_thread, axis=0)
+        for i in range(1, len(cell_start)):
+            cell_start[i] += cell_start[i - 1]
+
+        tmp = cell_end_thread[0, :]
+        tmp[:] = cell_end_thread[thread_num - 1, :]
+        cell_end_thread[thread_num - 1, :] = cell_start[:]
+        for t in range(thread_num - 2, -1, -1):
+            cell_start[:] = cell_end_thread[t + 1, :] - tmp[:]
+            tmp[:] = cell_end_thread[t, :]
+            cell_end_thread[t, :] = cell_start[:]
+
+        for t in numba.prange(thread_num):  # pylint: disable=not-an-iterable
+            for i in range(
+                (t + 1) * length // thread_num - 1
+                if t &lt; thread_num - 1
+                else length - 1,
+                t * length // thread_num - 1,
+                -1,
+            ):
+                cell_end_thread[t, cell_idx[cell_id[idx[i]]]] -= 1
+                new_idx[cell_end_thread[t, cell_idx[cell_id[idx[i]]]]] = idx[i]
+
+        cell_start[:] = cell_end_thread[0, :]</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.break_up"><code class="name flex">
+<span>def <span class="ident">break_up</span></span>(<span>i, j, k, cid, multiplicity, gamma, attributes, n_fragment, fragment_size, max_multiplicity, breakup_rate, breakup_rate_deficit, warn_overflows, volume)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+def break_up(  # pylint: disable=too-many-arguments,unused-argument,too-many-locals
+    i,
+    j,
+    k,
+    cid,
+    multiplicity,
+    gamma,
+    attributes,
+    n_fragment,
+    fragment_size,
+    max_multiplicity,
+    breakup_rate,
+    breakup_rate_deficit,
+    warn_overflows,
+    volume,
+):  # pylint: disable=too-many-branches
+    overflow_flag = False
+    take_from_j_test = multiplicity[k]
+    new_mult_k_test = 0
+    new_mult_k = multiplicity[k]
+    take_from_j = 0
+    gamma_tmp = 0
+    gamma_deficit = gamma[i]
+    for m in range(int(gamma[i])):
+        take_from_j_test = new_mult_k_test + take_from_j_test
+        new_mult_k_test = (
+            new_mult_k_test * (volume[j] / fragment_size[i])
+            + n_fragment[i] * multiplicity[k]
+        )
+        # check for overflow of multiplicity
+        if new_mult_k_test &gt; max_multiplicity:
+            overflow_flag = True
+            break
+        # check for new_n &gt; 0
+        if take_from_j_test &gt; multiplicity[j]:
+            break
+
+        # all tests passed
+        take_from_j = take_from_j_test
+        new_mult_k = new_mult_k_test
+        gamma_tmp = m + 1
+        gamma_deficit = gamma[i] - gamma_tmp
+    # 2. Compute the new multiplicities and particle sizes, with rounding
+    for a in range(0, len(attributes)):
+        attributes[a, k] *= multiplicity[k]
+        attributes[a, k] += take_from_j * attributes[a, j]
+        attributes[a, k] /= new_mult_k
+    if multiplicity[j] &gt; take_from_j:
+        nj = multiplicity[j] - take_from_j
+        nk = new_mult_k
+    else:
+        nj = new_mult_k / 2
+        if round(nj) == 0:
+            atomic_add(breakup_rate_deficit, cid, gamma[i] * multiplicity[k])
+            return
+        nk = nj
+        for a in range(0, len(attributes)):
+            attributes[a, j] = attributes[a, k]
+    # add up the product
+    atomic_add(breakup_rate, cid, gamma_tmp * multiplicity[k])
+    atomic_add(breakup_rate_deficit, cid, gamma_deficit * multiplicity[k])
+    # perform rounding as necessary
+    multiplicity[j] = round(nj)
+    multiplicity[k] = round(nk)
+    factor_j = nj / multiplicity[j]
+    factor_k = nk / multiplicity[k]
+    for a in range(0, len(attributes)):
+        attributes[a, k] *= factor_k
+        attributes[a, j] *= factor_j
+
+    if overflow_flag:
+        if warn_overflows:
+            warn(&#34;overflow&#34;, __file__)</code></pre>
+</details>
+</dd>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.break_up_while"><code class="name flex">
+<span>def <span class="ident">break_up_while</span></span>(<span>i, j, k, cid, multiplicity, gamma, attributes, n_fragment, fragment_size, max_multiplicity, breakup_rate, breakup_rate_deficit, warn_overflows, volume)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+def break_up_while(  # pylint: disable=too-many-arguments,unused-argument,too-many-statements,too-many-locals
+    i,
+    j,
+    k,
+    cid,
+    multiplicity,
+    gamma,
+    attributes,
+    n_fragment,
+    fragment_size,
+    max_multiplicity,
+    breakup_rate,
+    breakup_rate_deficit,
+    warn_overflows,
+    volume,
+):  # pylint: disable=too-many-branches
+    gamma_tmp = 0
+    gamma_deficit = gamma[i]
+    overflow_flag = False
+    while gamma_deficit &gt; 0:
+        if multiplicity[k] == multiplicity[j]:
+            take_from_j = multiplicity[j]
+            new_mult_k = (volume[j] + volume[k]) / fragment_size[i] * multiplicity[k]
+            # check for overflow
+            if new_mult_k &gt; max_multiplicity:
+                atomic_add(breakup_rate_deficit, cid, gamma_deficit * multiplicity[k])
+                overflow_flag = True
+                break
+            gamma_tmp = gamma_deficit
+
+        else:
+            # reorder droplets if necessary
+            if multiplicity[k] &gt; multiplicity[j]:
+                j, k = k, j
+            take_from_j_test = multiplicity[k]
+            take_from_j = 0
+            new_mult_k_test = 0
+            new_mult_k = multiplicity[k]
+            for m in range(int(gamma_deficit)):
+                take_from_j_test = new_mult_k_test + take_from_j_test
+                nfi = (volume[j] + volume[k]) / fragment_size[i]
+                new_mult_k_test = (
+                    new_mult_k_test * (volume[j] / fragment_size[i])
+                    + nfi * multiplicity[k]
+                )
+                # check for overflow of multiplicity
+                if new_mult_k_test &gt; max_multiplicity:
+                    overflow_flag = True
+                    break
+                # check for new_n &gt; 0
+                if take_from_j_test &gt; multiplicity[j]:
+                    break
+
+                # all tests passed
+                take_from_j = take_from_j_test
+                new_mult_k = new_mult_k_test
+                gamma_tmp = m + 1
+        # Compute the new multiplicities and particle sizes, with rounding
+        for a in range(0, len(attributes)):
+            attributes[a, k] *= multiplicity[k]
+            attributes[a, k] += take_from_j * attributes[a, j]
+            attributes[a, k] /= new_mult_k
+        if multiplicity[j] &gt; take_from_j:
+            nj = multiplicity[j] - take_from_j
+            nk = new_mult_k
+        else:
+            nj = new_mult_k / 2
+            if round(nj) == 0:
+                atomic_add(breakup_rate_deficit, cid, gamma_tmp * multiplicity[k])
+                return
+            nk = nj
+            for a in range(0, len(attributes)):
+                attributes[a, j] = attributes[a, k]
+
+        atomic_add(breakup_rate, cid, gamma_tmp * multiplicity[k])
+        # perform rounding as necessary
+        multiplicity[j] = round(nj)
+        multiplicity[k] = round(nk)
+        factor_j = nj / multiplicity[j]
+        factor_k = nk / multiplicity[k]
+        for a in range(0, len(attributes)):
+            attributes[a, k] *= factor_k
+            attributes[a, j] *= factor_j
+        gamma_deficit -= gamma_tmp
+
+    atomic_add(breakup_rate_deficit, cid, gamma_deficit * multiplicity[k])
+
+    if overflow_flag:
+        if warn_overflows:
+            warn(&#34;overflow&#34;, __file__)</code></pre>
+</details>
+</dd>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.coalesce"><code class="name flex">
+<span>def <span class="ident">coalesce</span></span>(<span>i, j, k, cid, multiplicity, gamma, attributes, coalescence_rate)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+def coalesce(  # pylint: disable=too-many-arguments
+    i, j, k, cid, multiplicity, gamma, attributes, coalescence_rate
+):
+    atomic_add(coalescence_rate, cid, gamma[i] * multiplicity[k])
+    new_n = multiplicity[j] - gamma[i] * multiplicity[k]
+    if new_n &gt; 0:
+        multiplicity[j] = new_n
+        for a in range(0, len(attributes)):
+            attributes[a, k] += gamma[i] * attributes[a, j]
+    else:  # new_n == 0
+        multiplicity[j] = multiplicity[k] // 2
+        multiplicity[k] = multiplicity[k] - multiplicity[j]
+        for a in range(0, len(attributes)):
+            attributes[a, j] = gamma[i] * attributes[a, j] + attributes[a, k]
+            attributes[a, k] = attributes[a, j]</code></pre>
+</details>
+</dd>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.flag_zero_multiplicity"><code class="name flex">
+<span>def <span class="ident">flag_zero_multiplicity</span></span>(<span>j, k, multiplicity, healthy)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+def flag_zero_multiplicity(j, k, multiplicity, healthy):
+    if multiplicity[k] == 0 or multiplicity[j] == 0:
+        healthy[0] = 0</code></pre>
+</details>
+</dd>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.pair_indices"><code class="name flex">
+<span>def <span class="ident">pair_indices</span></span>(<span>i, idx, is_first_in_pair)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>given permutation array <code>idx</code> and <code>is_first_in_pair</code> flag array,
+returns indices <code>j</code> and <code>k</code> of droplets within pair <code>i</code>
+such that <code>j</code> points to the droplet with higher (or equal) multiplicity</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+def pair_indices(i, idx, is_first_in_pair):
+    &#34;&#34;&#34;given permutation array `idx` and `is_first_in_pair` flag array,
+    returns indices `j` and `k` of droplets within pair `i`
+    such that `j` points to the droplet with higher (or equal) multiplicity
+    &#34;&#34;&#34;
+    offset = 1 - is_first_in_pair[2 * i]
+    j = idx[2 * i + offset]
+    k = idx[2 * i + 1 + offset]
+    return j, k</code></pre>
+</details>
+</dd>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.straub_Nr"><code class="name flex">
+<span>def <span class="ident">straub_Nr</span></span>(<span>i, Nr1, Nr2, Nr3, Nr4, Nrt, CW, gam)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+def straub_Nr(  # pylint: disable=too-many-arguments,unused-argument
+    i,
+    Nr1,
+    Nr2,
+    Nr3,
+    Nr4,
+    Nrt,
+    CW,
+    gam,
+):  # pylint: disable=too-many-branches`
+    if gam[i] * CW[i] &gt;= 7.0:
+        Nr1[i] = 0.088 * (gam[i] * CW[i] - 7.0)
+    if CW[i] &gt;= 21.0:
+        Nr2[i] = 0.22 * (CW[i] - 21.0)
+        if CW[i] &lt;= 46.0:
+            Nr3[i] = 0.04 * (46.0 - CW[i])
+    else:
+        Nr3[i] = 1.0
+    Nr4[i] = 1.0
+    Nrt[i] = Nr1[i] + Nr2[i] + Nr3[i] + Nr4[i]</code></pre>
+</details>
+</dd>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.straub_p1"><code class="name flex">
+<span>def <span class="ident">straub_p1</span></span>(<span>i, CW, frag_size, rand)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+def straub_p1(  # pylint: disable=too-many-arguments,unused-argument
+    i,
+    CW,
+    frag_size,
+    rand,
+):
+    E_D1 = 0.04 * CM
+    delD1 = 0.125 * CW[i] ** (1 / 2)
+    var_1 = delD1**2 / 12
+    sigma1 = np.sqrt(np.log(var_1 / E_D1**2 + 1))
+    mu1 = np.log(E_D1) - sigma1**2 / 2
+    X = rand[i]
+
+    frag_size[i] = np.exp(
+        mu1
+        - sigma1 / sqrt_two / sqrt_pi / np.log(2) * np.log((1 / 2 + X) / (3 / 2 - X))
+    )
+    frag_size[i] = PI / 6 * frag_size[i] ** 3</code></pre>
+</details>
+</dd>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.straub_p2"><code class="name flex">
+<span>def <span class="ident">straub_p2</span></span>(<span>i, CW, frag_size, rand)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+def straub_p2(  # pylint: disable=too-many-arguments,unused-argument
+    i,
+    CW,
+    frag_size,
+    rand,
+):
+    mu2 = 0.095 * CM
+    delD2 = 0.22 * (CW[i] - 21.0)
+    sigma2 = delD2**2 / 12
+    X = rand[i]
+
+    frag_size[i] = mu2 - sigma2 / sqrt_two / sqrt_pi / np.log(2) * np.log(
+        (1 / 2 + X) / (3 / 2 - X)
+    )
+    frag_size[i] = PI / 6 * frag_size[i] ** 3</code></pre>
+</details>
+</dd>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.straub_p3"><code class="name flex">
+<span>def <span class="ident">straub_p3</span></span>(<span>i, CW, ds, frag_size, rand)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+def straub_p3(  # pylint: disable=too-many-arguments,unused-argument
+    i,
+    CW,
+    ds,
+    frag_size,
+    rand,
+):
+    mu3 = 0.9 * ds[i]
+    delD3 = 0.01 * (0.76 * CW[i] ** 1 / 2 + 1.0)
+    sigma3 = delD3**2 / 12
+    X = rand[i]
+
+    frag_size[i] = mu3 - sigma3 / sqrt_two / sqrt_pi / np.log(2) * np.log(
+        (1 / 2 + X) / (3 / 2 - X)
+    )
+    frag_size[i] = PI / 6 * frag_size[i] ** 3</code></pre>
+</details>
+</dd>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.straub_p4"><code class="name flex">
+<span>def <span class="ident">straub_p4</span></span>(<span>i, CW, ds, v_max, frag_size, Nr1, Nr2, Nr3)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+def straub_p4(  # pylint: disable=too-many-arguments,unused-argument,too-many-locals
+    i, CW, ds, v_max, frag_size, Nr1, Nr2, Nr3
+):
+    E_D1 = 0.04 * CM
+    delD1 = 0.125 * CW[i] ** (1 / 2)
+    var_1 = delD1**2 / 12
+    sigma1 = np.sqrt(np.log(var_1 / E_D1**2 + 1))
+    mu1 = np.log(E_D1) - sigma1**2 / 2
+    mu2 = 0.095 * CM
+    delD2 = 0.22 * (CW[i] - 21.0)
+    sigma2 = delD2**2 / 12
+    mu3 = 0.9 * ds[i]
+    delD3 = 0.01 * (0.76 * CW[i] ** 1 / 2 + 1.0)
+    sigma3 = delD3**2 / 12
+
+    M31 = Nr1[i] * np.exp(3 * mu1 + 9 * sigma1**2 / 2)
+    M32 = Nr2[i] * (mu2**3 + 3 * mu2 * sigma2**2)
+    M33 = Nr3[i] * (mu3**3 + 3 * mu3 * sigma3**2)
+
+    M34 = v_max[i] / PI_4_3 * 8 + ds[i] ** 3 - M31 - M32 - M33
+    frag_size[i] = PI / 6 * M34</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods"><code class="flex name class">
+<span>class <span class="ident">CollisionsMethods</span></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CollisionsMethods(BackendMethods):
+    @staticmethod
+    @numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+    def __adaptive_sdm_end_body(dt_left, n_cell, cell_start):
+        end = 0
+        for i in range(n_cell - 1, -1, -1):
+            if dt_left[i] == 0:
+                continue
+            end = cell_start[i + 1]
+            break
+        return end
+
+    def adaptive_sdm_end(self, dt_left, cell_start):
+        return self.__adaptive_sdm_end_body(dt_left.data, len(dt_left), cell_start.data)
+
+    @staticmethod
+    @numba.njit(**conf.JIT_FLAGS)
+    # pylint: disable=too-many-arguments,too-many-locals
+    def __adaptive_sdm_gamma_body(
+        gamma,
+        idx,
+        length,
+        multiplicity,
+        cell_id,
+        dt_left,
+        dt,
+        dt_range,
+        is_first_in_pair,
+        stats_n_substep,
+        stats_dt_min,
+    ):
+        dt_todo = np.empty_like(dt_left)
+        for cid in numba.prange(len(dt_todo)):  # pylint: disable=not-an-iterable
+            dt_todo[cid] = min(dt_left[cid], dt_range[1])
+        for i in range(length // 2):  # TODO #571
+            if gamma[i] == 0:
+                continue
+            j, k = pair_indices(i, idx, is_first_in_pair)
+            prop = multiplicity[j] // multiplicity[k]
+            dt_optimal = dt * prop / gamma[i]
+            cid = cell_id[j]
+            dt_optimal = max(dt_optimal, dt_range[0])
+            dt_todo[cid] = min(dt_todo[cid], dt_optimal)
+            stats_dt_min[cid] = min(stats_dt_min[cid], dt_optimal)
+        for i in numba.prange(length // 2):  # pylint: disable=not-an-iterable
+            if gamma[i] == 0:
+                continue
+            j, _ = pair_indices(i, idx, is_first_in_pair)
+            gamma[i] *= dt_todo[cell_id[j]] / dt
+        for cid in numba.prange(len(dt_todo)):  # pylint: disable=not-an-iterable
+            dt_left[cid] -= dt_todo[cid]
+            if dt_todo[cid] &gt; 0:
+                stats_n_substep[cid] += 1
+
+    def adaptive_sdm_gamma(
+        self,
+        *,
+        gamma,
+        n,
+        cell_id,
+        dt_left,
+        dt,
+        dt_range,
+        is_first_in_pair,
+        stats_n_substep,
+        stats_dt_min,
+    ):
+        return self.__adaptive_sdm_gamma_body(
+            gamma.data,
+            n.idx.data,
+            len(n),
+            n.data,
+            cell_id.data,
+            dt_left.data,
+            dt,
+            dt_range,
+            is_first_in_pair.indicator.data,
+            stats_n_substep.data,
+            stats_dt_min.data,
+        )
+
+    @staticmethod
+    # @numba.njit(**conf.JIT_FLAGS)  # note: as of Numba 0.51, np.dot() does not support ints
+    def __cell_id_body(cell_id, cell_origin, strides):
+        cell_id[:] = np.dot(strides, cell_origin)
+
+    def cell_id(self, cell_id, cell_origin, strides):
+        return self.__cell_id_body(cell_id.data, cell_origin.data, strides.data)
+
+    @staticmethod
+    @numba.njit(**conf.JIT_FLAGS)
+    def __collision_coalescence_body(
+        *,
+        multiplicity,
+        idx,
+        length,
+        attributes,
+        gamma,
+        healthy,
+        cell_id,
+        coalescence_rate,
+        is_first_in_pair,
+    ):
+        for i in numba.prange(  # pylint: disable=not-an-iterable,too-many-nested-blocks
+            length // 2
+        ):
+            if gamma[i] == 0:
+                continue
+            j, k = pair_indices(i, idx, is_first_in_pair)
+            coalesce(
+                i, j, k, cell_id[j], multiplicity, gamma, attributes, coalescence_rate
+            )
+            flag_zero_multiplicity(j, k, multiplicity, healthy)
+
+    def collision_coalescence(
+        self,
+        *,
+        multiplicity,
+        idx,
+        attributes,
+        gamma,
+        healthy,
+        cell_id,
+        coalescence_rate,
+        is_first_in_pair,
+    ):
+        self.__collision_coalescence_body(
+            multiplicity=multiplicity.data,
+            idx=idx.data,
+            length=len(idx),
+            attributes=attributes.data,
+            gamma=gamma.data,
+            healthy=healthy.data,
+            cell_id=cell_id.data,
+            coalescence_rate=coalescence_rate.data,
+            is_first_in_pair=is_first_in_pair.indicator.data,
+        )
+
+    @staticmethod
+    @numba.njit(**conf.JIT_FLAGS)
+    def __collision_coalescence_breakup_body(
+        *,
+        multiplicity,
+        idx,
+        length,
+        attributes,
+        gamma,
+        rand,
+        Ec,
+        Eb,
+        n_fragment,
+        fragment_size,
+        healthy,
+        cell_id,
+        coalescence_rate,
+        breakup_rate,
+        breakup_rate_deficit,
+        is_first_in_pair,
+        max_multiplicity,
+        warn_overflows,
+        volume,
+        handle_all_breakups,
+    ):
+        # pylint: disable=not-an-iterable,too-many-nested-blocks,too-many-locals
+        for i in numba.prange(length // 2):
+            if gamma[i] == 0:
+                continue
+            bouncing = rand[i] - (Ec[i] + (1 - Ec[i]) * (Eb[i])) &gt; 0
+            if bouncing:
+                continue
+            j, k = pair_indices(i, idx, is_first_in_pair)
+
+            if rand[i] - Ec[i] &lt; 0:
+                coalesce(
+                    i,
+                    j,
+                    k,
+                    cell_id[j],
+                    multiplicity,
+                    gamma,
+                    attributes,
+                    coalescence_rate,
+                )
+            elif handle_all_breakups:
+                break_up_while(
+                    i,
+                    j,
+                    k,
+                    cell_id[j],
+                    multiplicity,
+                    gamma,
+                    attributes,
+                    n_fragment,
+                    fragment_size,
+                    max_multiplicity,
+                    breakup_rate,
+                    breakup_rate_deficit,
+                    warn_overflows,
+                    volume,
+                )
+            else:
+                break_up(
+                    i,
+                    j,
+                    k,
+                    cell_id[j],
+                    multiplicity,
+                    gamma,
+                    attributes,
+                    n_fragment,
+                    fragment_size,
+                    max_multiplicity,
+                    breakup_rate,
+                    breakup_rate_deficit,
+                    warn_overflows,
+                    volume,
+                )
+            flag_zero_multiplicity(j, k, multiplicity, healthy)
+
+    def collision_coalescence_breakup(
+        self,
+        *,
+        multiplicity,
+        idx,
+        attributes,
+        gamma,
+        rand,
+        Ec,
+        Eb,
+        n_fragment,
+        fragment_size,
+        healthy,
+        cell_id,
+        coalescence_rate,
+        breakup_rate,
+        breakup_rate_deficit,
+        is_first_in_pair,
+        warn_overflows,
+        volume,
+        handle_all_breakups,
+    ):
+        # pylint: disable=too-many-locals
+        max_multiplicity = np.iinfo(multiplicity.data.dtype).max // 2e5
+        self.__collision_coalescence_breakup_body(
+            multiplicity=multiplicity.data,
+            idx=idx.data,
+            length=len(idx),
+            attributes=attributes.data,
+            gamma=gamma.data,
+            rand=rand.data,
+            Ec=Ec.data,
+            Eb=Eb.data,
+            n_fragment=n_fragment.data,
+            fragment_size=fragment_size.data,
+            healthy=healthy.data,
+            cell_id=cell_id.data,
+            coalescence_rate=coalescence_rate.data,
+            breakup_rate=breakup_rate.data,
+            breakup_rate_deficit=breakup_rate_deficit.data,
+            is_first_in_pair=is_first_in_pair.indicator.data,
+            max_multiplicity=max_multiplicity,
+            warn_overflows=warn_overflows,
+            volume=volume.data,
+            handle_all_breakups=handle_all_breakups,
+        )
+
+    @staticmethod
+    @numba.njit(**{**conf.JIT_FLAGS})
+    # pylint: disable=too-many-arguments
+    def __fragmentation_limiters(n_fragment, frag_size, v_max, vmin, nfmax, x_plus_y):
+        for i in numba.prange(len(frag_size)):  # pylint: disable=not-an-iterable
+            frag_size[i] = min(frag_size[i], v_max[i])
+            frag_size[i] = max(frag_size[i], vmin)
+            if nfmax is not None:
+                if x_plus_y[i] / frag_size[i] &gt; nfmax:
+                    frag_size[i] = x_plus_y[i] / nfmax
+            if frag_size[i] == 0.0:
+                frag_size[i] = x_plus_y[i]
+                n_fragment[i] = 1.0
+            n_fragment[i] = x_plus_y[i] / frag_size[i]
+
+    def fragmentation_limiters(
+        self, *, n_fragment, frag_size, v_max, vmin, nfmax, x_plus_y
+    ):
+        self.__fragmentation_limiters(
+            n_fragment=n_fragment.data,
+            frag_size=frag_size.data,
+            v_max=v_max.data,
+            vmin=vmin,
+            nfmax=nfmax,
+            x_plus_y=x_plus_y.data,
+        )
+
+    @staticmethod
+    @numba.njit(**{**conf.JIT_FLAGS})
+    def __slams_fragmentation_body(n_fragment, frag_size, x_plus_y, probs, rand):
+        for i in numba.prange(len(n_fragment)):  # pylint: disable=not-an-iterable
+            probs[i] = 0.0
+            n_fragment[i] = 1
+            for n in range(22):
+                probs[i] += 0.91 * (n + 2) ** (-1.56)
+                if rand[i] &lt; probs[i]:
+                    n_fragment[i] = n + 2
+                    break
+            frag_size[i] = x_plus_y[i] / n_fragment[i]
+
+    def slams_fragmentation(
+        self, n_fragment, frag_size, v_max, x_plus_y, probs, rand, vmin, nfmax
+    ):  # pylint: disable=too-many-arguments
+        self.__slams_fragmentation_body(
+            n_fragment.data, frag_size.data, x_plus_y.data, probs.data, rand.data
+        )
+        self.__fragmentation_limiters(
+            n_fragment=n_fragment.data,
+            frag_size=frag_size.data,
+            v_max=v_max.data,
+            vmin=vmin,
+            nfmax=nfmax,
+            x_plus_y=x_plus_y.data,
+        )
+
+    @staticmethod
+    @numba.njit(**{**conf.JIT_FLAGS})
+    # pylint: disable=too-many-arguments
+    def __exp_fragmentation_body(*, scale, frag_size, rand, tol=1e-5):
+        &#34;&#34;&#34;
+        Exponential PDF
+        &#34;&#34;&#34;
+        for i in numba.prange(len(frag_size)):  # pylint: disable=not-an-iterable
+            frag_size[i] = -scale * np.log(max(1 - rand[i], tol))
+
+    def exp_fragmentation(
+        self,
+        *,
+        n_fragment,
+        scale,
+        frag_size,
+        v_max,
+        x_plus_y,
+        rand,
+        vmin,
+        nfmax,
+        tol=1e-5,
+    ):
+        self.__exp_fragmentation_body(
+            scale=scale,
+            frag_size=frag_size.data,
+            rand=rand.data,
+            tol=tol,
+        )
+        self.__fragmentation_limiters(
+            n_fragment=n_fragment.data,
+            frag_size=frag_size.data,
+            v_max=v_max.data,
+            x_plus_y=x_plus_y.data,
+            vmin=vmin,
+            nfmax=nfmax,
+        )
+
+    @staticmethod
+    @numba.njit(**{**conf.JIT_FLAGS})
+    # pylint: disable=too-many-arguments
+    def __feingold1988_fragmentation_body(*, scale, frag_size, x_plus_y, rand, fragtol):
+        &#34;&#34;&#34;
+        Scaled exponential PDF
+        &#34;&#34;&#34;
+        for i in numba.prange(len(frag_size)):  # pylint: disable=not-an-iterable
+            log_arg = max(1 - rand[i] * scale / x_plus_y[i], fragtol)
+            frag_size[i] = -scale * np.log(log_arg)
+
+    def feingold1988_fragmentation(
+        self,
+        *,
+        n_fragment,
+        scale,
+        frag_size,
+        v_max,
+        x_plus_y,
+        rand,
+        fragtol,
+        vmin,
+        nfmax,
+    ):
+        self.__feingold1988_fragmentation_body(
+            scale=scale,
+            frag_size=frag_size.data,
+            x_plus_y=x_plus_y.data,
+            rand=rand.data,
+            fragtol=fragtol,
+        )
+
+        self.__fragmentation_limiters(
+            n_fragment=n_fragment.data,
+            frag_size=frag_size.data,
+            v_max=v_max.data,
+            x_plus_y=x_plus_y.data,
+            vmin=vmin,
+            nfmax=nfmax,
+        )
+
+    @staticmethod
+    # pylint: disable=too-many-arguments
+    @numba.njit(**{**conf.JIT_FLAGS})
+    def __gauss_fragmentation_body(*, mu, sigma, frag_size, rand):
+        &#34;&#34;&#34;
+        Gaussian PDF
+        CDF = 1/2(1 + erf(x/sqrt(2)));
+        approximate as erf(x) ~ tanh(ax) with a = sqrt(pi)log(2) as in Vedder 1987
+        &#34;&#34;&#34;
+        for i in numba.prange(len(frag_size)):  # pylint: disable=not-an-iterable
+            frag_size[i] = mu - sigma / sqrt_two / sqrt_pi / np.log(2) * np.log(
+                (1 / 2 + rand[i]) / (3 / 2 - rand[i])
+            )
+
+    def gauss_fragmentation(
+        self, *, n_fragment, mu, sigma, frag_size, v_max, x_plus_y, rand, vmin, nfmax
+    ):
+        self.__gauss_fragmentation_body(
+            mu=mu,
+            sigma=sigma,
+            frag_size=frag_size.data,
+            rand=rand.data,
+        )
+        self.__fragmentation_limiters(
+            n_fragment=n_fragment.data,
+            frag_size=frag_size.data,
+            v_max=v_max.data,
+            x_plus_y=x_plus_y.data,
+            vmin=vmin,
+            nfmax=nfmax,
+        )
+
+    @staticmethod
+    # pylint: disable=too-many-arguments
+    @numba.njit(**(conf.JIT_FLAGS))
+    def __straub_fragmentation_body(
+        *, CW, gam, ds, v_max, frag_size, rand, Nr1, Nr2, Nr3, Nr4, Nrt
+    ):
+        for i in numba.prange(len(frag_size)):  # pylint: disable=not-an-iterable
+            straub_Nr(i, Nr1, Nr2, Nr3, Nr4, Nrt, CW, gam)
+            if rand[i] &lt; Nr1[i] / Nrt[i]:
+                rand[i] = rand[i] * Nrt[i] / Nr1[i]
+                straub_p1(i, CW, frag_size, rand)
+            elif rand[i] &lt; (Nr2[i] + Nr1[i]) / Nrt[i]:
+                rand[i] = (rand[i] * Nrt[i] - Nr1[i]) / (Nr2[i] - Nr1[i])
+                straub_p2(i, CW, frag_size, rand)
+            elif rand[i] &lt; (Nr3[i] + Nr2[i] + Nr1[i]) / Nrt[i]:
+                rand[i] = (rand[i] * Nrt[i] - Nr2[i]) / (Nr3[i] - Nr2[i])
+                straub_p3(i, CW, ds, frag_size, rand)
+            else:
+                straub_p4(i, CW, ds, v_max, frag_size, Nr1, Nr2, Nr3)
+
+    def straub_fragmentation(
+        # pylint: disable=too-many-arguments,too-many-locals
+        self,
+        *,
+        n_fragment,
+        CW,
+        gam,
+        ds,
+        frag_size,
+        v_max,
+        x_plus_y,
+        rand,
+        vmin,
+        nfmax,
+        Nr1,
+        Nr2,
+        Nr3,
+        Nr4,
+        Nrt,
+    ):
+        self.__straub_fragmentation_body(
+            CW=CW.data,
+            gam=gam.data,
+            ds=ds.data,
+            frag_size=frag_size.data,
+            v_max=v_max.data,
+            rand=rand.data,
+            Nr1=Nr1.data,
+            Nr2=Nr2.data,
+            Nr3=Nr3.data,
+            Nr4=Nr4.data,
+            Nrt=Nrt.data,
+        )
+        self.__fragmentation_limiters(
+            n_fragment=n_fragment.data,
+            frag_size=frag_size.data,
+            v_max=v_max.data,
+            x_plus_y=x_plus_y.data,
+            vmin=vmin,
+            nfmax=nfmax,
+        )
+
+    @staticmethod
+    @numba.njit(**conf.JIT_FLAGS)
+    # pylint: disable=too-many-arguments,too-many-locals
+    def __compute_gamma_body(
+        gamma,
+        rand,
+        idx,
+        length,
+        multiplicity,
+        cell_id,
+        collision_rate_deficit,
+        collision_rate,
+        is_first_in_pair,
+    ):
+        &#34;&#34;&#34;
+        return in &#34;gamma&#34; array gamma (see: http://doi.org/10.1002/qj.441, section 5)
+        formula:
+        gamma = floor(prob) + 1 if rand &lt;  prob - floor(prob)
+              = floor(prob)     if rand &gt;= prob - floor(prob)
+        &#34;&#34;&#34;
+        for i in numba.prange(length // 2):  # pylint: disable=not-an-iterable
+            gamma[i] = np.ceil(gamma[i] - rand[i])
+
+            no_collision = gamma[i] == 0
+            if no_collision:
+                continue
+
+            j, k = pair_indices(i, idx, is_first_in_pair)
+            prop = multiplicity[j] // multiplicity[k]
+            g = min(int(gamma[i]), prop)
+            cid = cell_id[j]
+            atomic_add(collision_rate, cid, g * multiplicity[k])
+            atomic_add(
+                collision_rate_deficit, cid, (int(gamma[i]) - g) * multiplicity[k]
+            )
+            gamma[i] = g
+
+    def compute_gamma(
+        self,
+        *,
+        gamma,
+        rand,
+        multiplicity,
+        cell_id,
+        collision_rate_deficit,
+        collision_rate,
+        is_first_in_pair,
+    ):
+        return self.__compute_gamma_body(
+            gamma.data,
+            rand.data,
+            multiplicity.idx.data,
+            len(multiplicity),
+            multiplicity.data,
+            cell_id.data,
+            collision_rate_deficit.data,
+            collision_rate.data,
+            is_first_in_pair.indicator.data,
+        )
+
+    @staticmethod
+    def make_cell_caretaker(idx, cell_start, scheme=&#34;default&#34;):
+        class CellCaretaker:  # pylint: disable=too-few-public-methods
+            def __init__(self, idx, cell_start, scheme):
+                if scheme == &#34;default&#34;:
+                    if conf.JIT_FLAGS[&#34;parallel&#34;]:
+                        scheme = &#34;counting_sort_parallel&#34;
+                    else:
+                        scheme = &#34;counting_sort&#34;
+                self.scheme = scheme
+                if scheme in (&#34;counting_sort&#34;, &#34;counting_sort_parallel&#34;):
+                    self.tmp_idx = Storage.empty(idx.shape, idx.dtype)
+                if scheme == &#34;counting_sort_parallel&#34;:
+                    self.cell_starts = Storage.empty(
+                        (
+                            numba.config.NUMBA_NUM_THREADS,  # pylint: disable=no-member
+                            len(cell_start),
+                        ),
+                        dtype=int,
+                    )
+
+            def __call__(self, cell_id, cell_idx, cell_start, idx):
+                length = len(idx)
+                if self.scheme == &#34;counting_sort&#34;:
+                    CollisionsMethods._counting_sort_by_cell_id_and_update_cell_start(
+                        self.tmp_idx.data,
+                        idx.data,
+                        cell_id.data,
+                        cell_idx.data,
+                        length,
+                        cell_start.data,
+                    )
+                elif self.scheme == &#34;counting_sort_parallel&#34;:
+                    CollisionsMethods._parallel_counting_sort_by_cell_id_and_update_cell_start(
+                        self.tmp_idx.data,
+                        idx.data,
+                        cell_id.data,
+                        cell_idx.data,
+                        length,
+                        cell_start.data,
+                        self.cell_starts.data,
+                    )
+                idx.data, self.tmp_idx.data = self.tmp_idx.data, idx.data
+
+        return CellCaretaker(idx, cell_start, scheme)
+
+    @staticmethod
+    @numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+    # pylint: disable=too-many-arguments
+    def __normalize_body(
+        prob, cell_id, cell_idx, cell_start, norm_factor, timestep, dv
+    ):
+        n_cell = cell_start.shape[0] - 1
+        for i in range(n_cell):
+            sd_num = cell_start[i + 1] - cell_start[i]
+            if sd_num &lt; 2:
+                norm_factor[i] = 0
+            else:
+                norm_factor[i] = (
+                    timestep / dv * sd_num * (sd_num - 1) / 2 / (sd_num // 2)
+                )
+        for d in numba.prange(prob.shape[0]):  # pylint: disable=not-an-iterable
+            prob[d] *= norm_factor[cell_idx[cell_id[d]]]
+
+    # pylint: disable=too-many-arguments
+    def normalize(self, prob, cell_id, cell_idx, cell_start, norm_factor, timestep, dv):
+        return self.__normalize_body(
+            prob.data,
+            cell_id.data,
+            cell_idx.data,
+            cell_start.data,
+            norm_factor.data,
+            timestep,
+            dv,
+        )
+
+    @staticmethod
+    @numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+    def remove_zero_n_or_flagged(multiplicity, idx, length) -&gt; int:
+        flag = len(idx)
+        new_length = length
+        i = 0
+        while i &lt; new_length:
+            if idx[i] == flag or multiplicity[idx[i]] == 0:
+                new_length -= 1
+                idx[i] = idx[new_length]
+                idx[new_length] = flag
+            else:
+                i += 1
+        return new_length
+
+    @staticmethod
+    @numba.njit(**conf.JIT_FLAGS)
+    # pylint: disable=too-many-arguments
+    def _counting_sort_by_cell_id_and_update_cell_start(
+        new_idx, idx, cell_id, cell_idx, length, cell_start
+    ):
+        cell_end = cell_start
+        # Warning: Assuming len(cell_end) == n_cell+1
+        cell_end[:] = 0
+        for i in range(length):
+            cell_end[cell_idx[cell_id[idx[i]]]] += 1
+        for i in range(1, len(cell_end)):
+            cell_end[i] += cell_end[i - 1]
+        for i in range(length - 1, -1, -1):
+            cell_end[cell_idx[cell_id[idx[i]]]] -= 1
+            new_idx[cell_end[cell_idx[cell_id[idx[i]]]]] = idx[i]
+
+    @staticmethod
+    @numba.njit(**conf.JIT_FLAGS)
+    # pylint: disable=too-many-arguments
+    def _parallel_counting_sort_by_cell_id_and_update_cell_start(
+        new_idx, idx, cell_id, cell_idx, length, cell_start, cell_start_p
+    ):
+        cell_end_thread = cell_start_p
+        # Warning: Assuming len(cell_end) == n_cell+1
+        thread_num = cell_end_thread.shape[0]
+        for t in numba.prange(thread_num):  # pylint: disable=not-an-iterable
+            cell_end_thread[t, :] = 0
+            for i in range(
+                t * length // thread_num,
+                (t + 1) * length // thread_num if t &lt; thread_num - 1 else length,
+            ):
+                cell_end_thread[t, cell_idx[cell_id[idx[i]]]] += 1
+
+        cell_start[:] = np.sum(cell_end_thread, axis=0)
+        for i in range(1, len(cell_start)):
+            cell_start[i] += cell_start[i - 1]
+
+        tmp = cell_end_thread[0, :]
+        tmp[:] = cell_end_thread[thread_num - 1, :]
+        cell_end_thread[thread_num - 1, :] = cell_start[:]
+        for t in range(thread_num - 2, -1, -1):
+            cell_start[:] = cell_end_thread[t + 1, :] - tmp[:]
+            tmp[:] = cell_end_thread[t, :]
+            cell_end_thread[t, :] = cell_start[:]
+
+        for t in numba.prange(thread_num):  # pylint: disable=not-an-iterable
+            for i in range(
+                (t + 1) * length // thread_num - 1
+                if t &lt; thread_num - 1
+                else length - 1,
+                t * length // thread_num - 1,
+                -1,
+            ):
+                cell_end_thread[t, cell_idx[cell_id[idx[i]]]] -= 1
+                new_idx[cell_end_thread[t, cell_idx[cell_id[idx[i]]]]] = idx[i]
+
+        cell_start[:] = cell_end_thread[0, :]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="PySDM.backends.impl_common.backend_methods.BackendMethods" href="../../impl_common/backend_methods.html#PySDM.backends.impl_common.backend_methods.BackendMethods">BackendMethods</a></li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="PySDM.backends.numba.Numba" href="../../numba.html#PySDM.backends.numba.Numba">Numba</a></li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.make_cell_caretaker"><code class="name flex">
+<span>def <span class="ident">make_cell_caretaker</span></span>(<span>idx, cell_start, scheme='default')</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def make_cell_caretaker(idx, cell_start, scheme=&#34;default&#34;):
+    class CellCaretaker:  # pylint: disable=too-few-public-methods
+        def __init__(self, idx, cell_start, scheme):
+            if scheme == &#34;default&#34;:
+                if conf.JIT_FLAGS[&#34;parallel&#34;]:
+                    scheme = &#34;counting_sort_parallel&#34;
+                else:
+                    scheme = &#34;counting_sort&#34;
+            self.scheme = scheme
+            if scheme in (&#34;counting_sort&#34;, &#34;counting_sort_parallel&#34;):
+                self.tmp_idx = Storage.empty(idx.shape, idx.dtype)
+            if scheme == &#34;counting_sort_parallel&#34;:
+                self.cell_starts = Storage.empty(
+                    (
+                        numba.config.NUMBA_NUM_THREADS,  # pylint: disable=no-member
+                        len(cell_start),
+                    ),
+                    dtype=int,
+                )
+
+        def __call__(self, cell_id, cell_idx, cell_start, idx):
+            length = len(idx)
+            if self.scheme == &#34;counting_sort&#34;:
+                CollisionsMethods._counting_sort_by_cell_id_and_update_cell_start(
+                    self.tmp_idx.data,
+                    idx.data,
+                    cell_id.data,
+                    cell_idx.data,
+                    length,
+                    cell_start.data,
+                )
+            elif self.scheme == &#34;counting_sort_parallel&#34;:
+                CollisionsMethods._parallel_counting_sort_by_cell_id_and_update_cell_start(
+                    self.tmp_idx.data,
+                    idx.data,
+                    cell_id.data,
+                    cell_idx.data,
+                    length,
+                    cell_start.data,
+                    self.cell_starts.data,
+                )
+            idx.data, self.tmp_idx.data = self.tmp_idx.data, idx.data
+
+    return CellCaretaker(idx, cell_start, scheme)</code></pre>
+</details>
+</dd>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.remove_zero_n_or_flagged"><code class="name flex">
+<span>def <span class="ident">remove_zero_n_or_flagged</span></span>(<span>multiplicity, idx, length) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+@numba.njit(**{**conf.JIT_FLAGS, **{&#34;parallel&#34;: False}})
+def remove_zero_n_or_flagged(multiplicity, idx, length) -&gt; int:
+    flag = len(idx)
+    new_length = length
+    i = 0
+    while i &lt; new_length:
+        if idx[i] == flag or multiplicity[idx[i]] == 0:
+            new_length -= 1
+            idx[i] = idx[new_length]
+            idx[new_length] = flag
+        else:
+            i += 1
+    return new_length</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.adaptive_sdm_end"><code class="name flex">
+<span>def <span class="ident">adaptive_sdm_end</span></span>(<span>self, dt_left, cell_start)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def adaptive_sdm_end(self, dt_left, cell_start):
+    return self.__adaptive_sdm_end_body(dt_left.data, len(dt_left), cell_start.data)</code></pre>
+</details>
+</dd>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.adaptive_sdm_gamma"><code class="name flex">
+<span>def <span class="ident">adaptive_sdm_gamma</span></span>(<span>self, *, gamma, n, cell_id, dt_left, dt, dt_range, is_first_in_pair, stats_n_substep, stats_dt_min)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def adaptive_sdm_gamma(
+    self,
+    *,
+    gamma,
+    n,
+    cell_id,
+    dt_left,
+    dt,
+    dt_range,
+    is_first_in_pair,
+    stats_n_substep,
+    stats_dt_min,
+):
+    return self.__adaptive_sdm_gamma_body(
+        gamma.data,
+        n.idx.data,
+        len(n),
+        n.data,
+        cell_id.data,
+        dt_left.data,
+        dt,
+        dt_range,
+        is_first_in_pair.indicator.data,
+        stats_n_substep.data,
+        stats_dt_min.data,
+    )</code></pre>
+</details>
+</dd>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.cell_id"><code class="name flex">
+<span>def <span class="ident">cell_id</span></span>(<span>self, cell_id, cell_origin, strides)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cell_id(self, cell_id, cell_origin, strides):
+    return self.__cell_id_body(cell_id.data, cell_origin.data, strides.data)</code></pre>
+</details>
+</dd>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.collision_coalescence"><code class="name flex">
+<span>def <span class="ident">collision_coalescence</span></span>(<span>self, *, multiplicity, idx, attributes, gamma, healthy, cell_id, coalescence_rate, is_first_in_pair)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def collision_coalescence(
+    self,
+    *,
+    multiplicity,
+    idx,
+    attributes,
+    gamma,
+    healthy,
+    cell_id,
+    coalescence_rate,
+    is_first_in_pair,
+):
+    self.__collision_coalescence_body(
+        multiplicity=multiplicity.data,
+        idx=idx.data,
+        length=len(idx),
+        attributes=attributes.data,
+        gamma=gamma.data,
+        healthy=healthy.data,
+        cell_id=cell_id.data,
+        coalescence_rate=coalescence_rate.data,
+        is_first_in_pair=is_first_in_pair.indicator.data,
+    )</code></pre>
+</details>
+</dd>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.collision_coalescence_breakup"><code class="name flex">
+<span>def <span class="ident">collision_coalescence_breakup</span></span>(<span>self, *, multiplicity, idx, attributes, gamma, rand, Ec, Eb, n_fragment, fragment_size, healthy, cell_id, coalescence_rate, breakup_rate, breakup_rate_deficit, is_first_in_pair, warn_overflows, volume, handle_all_breakups)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def collision_coalescence_breakup(
+    self,
+    *,
+    multiplicity,
+    idx,
+    attributes,
+    gamma,
+    rand,
+    Ec,
+    Eb,
+    n_fragment,
+    fragment_size,
+    healthy,
+    cell_id,
+    coalescence_rate,
+    breakup_rate,
+    breakup_rate_deficit,
+    is_first_in_pair,
+    warn_overflows,
+    volume,
+    handle_all_breakups,
+):
+    # pylint: disable=too-many-locals
+    max_multiplicity = np.iinfo(multiplicity.data.dtype).max // 2e5
+    self.__collision_coalescence_breakup_body(
+        multiplicity=multiplicity.data,
+        idx=idx.data,
+        length=len(idx),
+        attributes=attributes.data,
+        gamma=gamma.data,
+        rand=rand.data,
+        Ec=Ec.data,
+        Eb=Eb.data,
+        n_fragment=n_fragment.data,
+        fragment_size=fragment_size.data,
+        healthy=healthy.data,
+        cell_id=cell_id.data,
+        coalescence_rate=coalescence_rate.data,
+        breakup_rate=breakup_rate.data,
+        breakup_rate_deficit=breakup_rate_deficit.data,
+        is_first_in_pair=is_first_in_pair.indicator.data,
+        max_multiplicity=max_multiplicity,
+        warn_overflows=warn_overflows,
+        volume=volume.data,
+        handle_all_breakups=handle_all_breakups,
+    )</code></pre>
+</details>
+</dd>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.compute_gamma"><code class="name flex">
+<span>def <span class="ident">compute_gamma</span></span>(<span>self, *, gamma, rand, multiplicity, cell_id, collision_rate_deficit, collision_rate, is_first_in_pair)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def compute_gamma(
+    self,
+    *,
+    gamma,
+    rand,
+    multiplicity,
+    cell_id,
+    collision_rate_deficit,
+    collision_rate,
+    is_first_in_pair,
+):
+    return self.__compute_gamma_body(
+        gamma.data,
+        rand.data,
+        multiplicity.idx.data,
+        len(multiplicity),
+        multiplicity.data,
+        cell_id.data,
+        collision_rate_deficit.data,
+        collision_rate.data,
+        is_first_in_pair.indicator.data,
+    )</code></pre>
+</details>
+</dd>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.exp_fragmentation"><code class="name flex">
+<span>def <span class="ident">exp_fragmentation</span></span>(<span>self, *, n_fragment, scale, frag_size, v_max, x_plus_y, rand, vmin, nfmax, tol=1e-05)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def exp_fragmentation(
+    self,
+    *,
+    n_fragment,
+    scale,
+    frag_size,
+    v_max,
+    x_plus_y,
+    rand,
+    vmin,
+    nfmax,
+    tol=1e-5,
+):
+    self.__exp_fragmentation_body(
+        scale=scale,
+        frag_size=frag_size.data,
+        rand=rand.data,
+        tol=tol,
+    )
+    self.__fragmentation_limiters(
+        n_fragment=n_fragment.data,
+        frag_size=frag_size.data,
+        v_max=v_max.data,
+        x_plus_y=x_plus_y.data,
+        vmin=vmin,
+        nfmax=nfmax,
+    )</code></pre>
+</details>
+</dd>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.feingold1988_fragmentation"><code class="name flex">
+<span>def <span class="ident">feingold1988_fragmentation</span></span>(<span>self, *, n_fragment, scale, frag_size, v_max, x_plus_y, rand, fragtol, vmin, nfmax)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def feingold1988_fragmentation(
+    self,
+    *,
+    n_fragment,
+    scale,
+    frag_size,
+    v_max,
+    x_plus_y,
+    rand,
+    fragtol,
+    vmin,
+    nfmax,
+):
+    self.__feingold1988_fragmentation_body(
+        scale=scale,
+        frag_size=frag_size.data,
+        x_plus_y=x_plus_y.data,
+        rand=rand.data,
+        fragtol=fragtol,
+    )
+
+    self.__fragmentation_limiters(
+        n_fragment=n_fragment.data,
+        frag_size=frag_size.data,
+        v_max=v_max.data,
+        x_plus_y=x_plus_y.data,
+        vmin=vmin,
+        nfmax=nfmax,
+    )</code></pre>
+</details>
+</dd>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.fragmentation_limiters"><code class="name flex">
+<span>def <span class="ident">fragmentation_limiters</span></span>(<span>self, *, n_fragment, frag_size, v_max, vmin, nfmax, x_plus_y)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fragmentation_limiters(
+    self, *, n_fragment, frag_size, v_max, vmin, nfmax, x_plus_y
+):
+    self.__fragmentation_limiters(
+        n_fragment=n_fragment.data,
+        frag_size=frag_size.data,
+        v_max=v_max.data,
+        vmin=vmin,
+        nfmax=nfmax,
+        x_plus_y=x_plus_y.data,
+    )</code></pre>
+</details>
+</dd>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.gauss_fragmentation"><code class="name flex">
+<span>def <span class="ident">gauss_fragmentation</span></span>(<span>self, *, n_fragment, mu, sigma, frag_size, v_max, x_plus_y, rand, vmin, nfmax)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def gauss_fragmentation(
+    self, *, n_fragment, mu, sigma, frag_size, v_max, x_plus_y, rand, vmin, nfmax
+):
+    self.__gauss_fragmentation_body(
+        mu=mu,
+        sigma=sigma,
+        frag_size=frag_size.data,
+        rand=rand.data,
+    )
+    self.__fragmentation_limiters(
+        n_fragment=n_fragment.data,
+        frag_size=frag_size.data,
+        v_max=v_max.data,
+        x_plus_y=x_plus_y.data,
+        vmin=vmin,
+        nfmax=nfmax,
+    )</code></pre>
+</details>
+</dd>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.normalize"><code class="name flex">
+<span>def <span class="ident">normalize</span></span>(<span>self, prob, cell_id, cell_idx, cell_start, norm_factor, timestep, dv)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def normalize(self, prob, cell_id, cell_idx, cell_start, norm_factor, timestep, dv):
+    return self.__normalize_body(
+        prob.data,
+        cell_id.data,
+        cell_idx.data,
+        cell_start.data,
+        norm_factor.data,
+        timestep,
+        dv,
+    )</code></pre>
+</details>
+</dd>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.slams_fragmentation"><code class="name flex">
+<span>def <span class="ident">slams_fragmentation</span></span>(<span>self, n_fragment, frag_size, v_max, x_plus_y, probs, rand, vmin, nfmax)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def slams_fragmentation(
+    self, n_fragment, frag_size, v_max, x_plus_y, probs, rand, vmin, nfmax
+):  # pylint: disable=too-many-arguments
+    self.__slams_fragmentation_body(
+        n_fragment.data, frag_size.data, x_plus_y.data, probs.data, rand.data
+    )
+    self.__fragmentation_limiters(
+        n_fragment=n_fragment.data,
+        frag_size=frag_size.data,
+        v_max=v_max.data,
+        vmin=vmin,
+        nfmax=nfmax,
+        x_plus_y=x_plus_y.data,
+    )</code></pre>
+</details>
+</dd>
+<dt id="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.straub_fragmentation"><code class="name flex">
+<span>def <span class="ident">straub_fragmentation</span></span>(<span>self, *, n_fragment, CW, gam, ds, frag_size, v_max, x_plus_y, rand, vmin, nfmax, Nr1, Nr2, Nr3, Nr4, Nrt)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def straub_fragmentation(
+    # pylint: disable=too-many-arguments,too-many-locals
+    self,
+    *,
+    n_fragment,
+    CW,
+    gam,
+    ds,
+    frag_size,
+    v_max,
+    x_plus_y,
+    rand,
+    vmin,
+    nfmax,
+    Nr1,
+    Nr2,
+    Nr3,
+    Nr4,
+    Nrt,
+):
+    self.__straub_fragmentation_body(
+        CW=CW.data,
+        gam=gam.data,
+        ds=ds.data,
+        frag_size=frag_size.data,
+        v_max=v_max.data,
+        rand=rand.data,
+        Nr1=Nr1.data,
+        Nr2=Nr2.data,
+        Nr3=Nr3.data,
+        Nr4=Nr4.data,
+        Nrt=Nrt.data,
+    )
+    self.__fragmentation_limiters(
+        n_fragment=n_fragment.data,
+        frag_size=frag_size.data,
+        v_max=v_max.data,
+        x_plus_y=x_plus_y.data,
+        vmin=vmin,
+        nfmax=nfmax,
+    )</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="PySDM.backends.impl_numba.methods" href="index.html">PySDM.backends.impl_numba.methods</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.break_up" href="#PySDM.backends.impl_numba.methods.collisions_methods.break_up">break_up</a></code></li>
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.break_up_while" href="#PySDM.backends.impl_numba.methods.collisions_methods.break_up_while">break_up_while</a></code></li>
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.coalesce" href="#PySDM.backends.impl_numba.methods.collisions_methods.coalesce">coalesce</a></code></li>
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.flag_zero_multiplicity" href="#PySDM.backends.impl_numba.methods.collisions_methods.flag_zero_multiplicity">flag_zero_multiplicity</a></code></li>
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.pair_indices" href="#PySDM.backends.impl_numba.methods.collisions_methods.pair_indices">pair_indices</a></code></li>
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.straub_Nr" href="#PySDM.backends.impl_numba.methods.collisions_methods.straub_Nr">straub_Nr</a></code></li>
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.straub_p1" href="#PySDM.backends.impl_numba.methods.collisions_methods.straub_p1">straub_p1</a></code></li>
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.straub_p2" href="#PySDM.backends.impl_numba.methods.collisions_methods.straub_p2">straub_p2</a></code></li>
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.straub_p3" href="#PySDM.backends.impl_numba.methods.collisions_methods.straub_p3">straub_p3</a></code></li>
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.straub_p4" href="#PySDM.backends.impl_numba.methods.collisions_methods.straub_p4">straub_p4</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods" href="#PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods">CollisionsMethods</a></code></h4>
+<ul class="">
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.adaptive_sdm_end" href="#PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.adaptive_sdm_end">adaptive_sdm_end</a></code></li>
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.adaptive_sdm_gamma" href="#PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.adaptive_sdm_gamma">adaptive_sdm_gamma</a></code></li>
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.cell_id" href="#PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.cell_id">cell_id</a></code></li>
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.collision_coalescence" href="#PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.collision_coalescence">collision_coalescence</a></code></li>
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.collision_coalescence_breakup" href="#PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.collision_coalescence_breakup">collision_coalescence_breakup</a></code></li>
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.compute_gamma" href="#PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.compute_gamma">compute_gamma</a></code></li>
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.exp_fragmentation" href="#PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.exp_fragmentation">exp_fragmentation</a></code></li>
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.feingold1988_fragmentation" href="#PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.feingold1988_fragmentation">feingold1988_fragmentation</a></code></li>
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.fragmentation_limiters" href="#PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.fragmentation_limiters">fragmentation_limiters</a></code></li>
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.gauss_fragmentation" href="#PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.gauss_fragmentation">gauss_fragmentation</a></code></li>
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.make_cell_caretaker" href="#PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.make_cell_caretaker">make_cell_caretaker</a></code></li>
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.normalize" href="#PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.normalize">normalize</a></code></li>
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.remove_zero_n_or_flagged" href="#PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.remove_zero_n_or_flagged">remove_zero_n_or_flagged</a></code></li>
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.slams_fragmentation" href="#PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.slams_fragmentation">slams_fragmentation</a></code></li>
+<li><code><a title="PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.straub_fragmentation" href="#PySDM.backends.impl_numba.methods.collisions_methods.CollisionsMethods.straub_fragmentation">straub_fragmentation</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

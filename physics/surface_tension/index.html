@@ -30,25 +30,33 @@
 <pre><code class="python">&#34;&#34;&#34;
 Particle surface tension formulae
 &#34;&#34;&#34;
+from .compressed_film_ovadnevaite import CompressedFilmOvadnevaite
+from .compressed_film_ruehl import CompressedFilmRuehl
 from .constant import Constant
-from .compressed_film_Ovadnevaite import CompressedFilm_Ovadnevaite
-from .compressed_film_Ruehl import CompressedFilm_Ruehl</code></pre>
+from .szyszkowski_langmuir import SzyszkowskiLangmuir</code></pre>
 </details>
 </section>
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
-<dt><code class="name"><a title="PySDM.physics.surface_tension.compressed_film_Ovadnevaite" href="compressed_film_Ovadnevaite.html">PySDM.physics.surface_tension.compressed_film_Ovadnevaite</a></code></dt>
+<dt><code class="name"><a title="PySDM.physics.surface_tension.compressed_film_ovadnevaite" href="compressed_film_ovadnevaite.html">PySDM.physics.surface_tension.compressed_film_ovadnevaite</a></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>surface tension coefficient model featuring surface-partitioning
+as in <a href="https://doi.org/10.1038/nature22806">Ovadnevaite et al. (2017)</a></p></div>
 </dd>
-<dt><code class="name"><a title="PySDM.physics.surface_tension.compressed_film_Ruehl" href="compressed_film_Ruehl.html">PySDM.physics.surface_tension.compressed_film_Ruehl</a></code></dt>
+<dt><code class="name"><a title="PySDM.physics.surface_tension.compressed_film_ruehl" href="compressed_film_ruehl.html">PySDM.physics.surface_tension.compressed_film_ruehl</a></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>surface tension coefficient model featuring surface-partitioning
+as in <a href="https://doi.org/10.1126/science.aad4889">Ruehl et al. (2016)</a></p></div>
 </dd>
 <dt><code class="name"><a title="PySDM.physics.surface_tension.constant" href="constant.html">PySDM.physics.surface_tension.constant</a></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>constant surface tension coefficient</p></div>
+</dd>
+<dt><code class="name"><a title="PySDM.physics.surface_tension.szyszkowski_langmuir" href="szyszkowski_langmuir.html">PySDM.physics.surface_tension.szyszkowski_langmuir</a></code></dt>
+<dd>
+<div class="desc"><p>surface tension coefficient model featuring surface-partitioning
+as in <a href="https://doi.org/10.1126/science.aad4889">Ruehl et al. (2016)</a></p></div>
 </dd>
 </dl>
 </section>
@@ -72,9 +80,10 @@ from .compressed_film_Ruehl import CompressedFilm_Ruehl</code></pre>
 </li>
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
-<li><code><a title="PySDM.physics.surface_tension.compressed_film_Ovadnevaite" href="compressed_film_Ovadnevaite.html">PySDM.physics.surface_tension.compressed_film_Ovadnevaite</a></code></li>
-<li><code><a title="PySDM.physics.surface_tension.compressed_film_Ruehl" href="compressed_film_Ruehl.html">PySDM.physics.surface_tension.compressed_film_Ruehl</a></code></li>
+<li><code><a title="PySDM.physics.surface_tension.compressed_film_ovadnevaite" href="compressed_film_ovadnevaite.html">PySDM.physics.surface_tension.compressed_film_ovadnevaite</a></code></li>
+<li><code><a title="PySDM.physics.surface_tension.compressed_film_ruehl" href="compressed_film_ruehl.html">PySDM.physics.surface_tension.compressed_film_ruehl</a></code></li>
 <li><code><a title="PySDM.physics.surface_tension.constant" href="constant.html">PySDM.physics.surface_tension.constant</a></code></li>
+<li><code><a title="PySDM.physics.surface_tension.szyszkowski_langmuir" href="szyszkowski_langmuir.html">PySDM.physics.surface_tension.szyszkowski_langmuir</a></code></li>
 </ul>
 </li>
 </ul>

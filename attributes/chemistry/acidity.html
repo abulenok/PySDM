@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>PySDM.attributes.chemistry.acidity API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="pH calculated by finding equilibrium hydrogen ion concentration" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,13 +22,17 @@
 <h1 class="title">Module <code>PySDM.attributes.chemistry.acidity</code></h1>
 </header>
 <section id="section-intro">
+<p>pH calculated by finding equilibrium hydrogen ion concentration</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from PySDM.attributes.impl.intensive_attribute import DerivedAttribute
-from PySDM.physics.aqueous_chemistry.support import AQUEOUS_COMPOUNDS
-from PySDM.physics import constants as const
+<pre><code class="python">&#34;&#34;&#34;
+pH calculated by finding equilibrium hydrogen ion concentration
+&#34;&#34;&#34;
+from PySDM.attributes.impl.intensive_attribute import DerivedAttribute
+from PySDM.backends.impl_numba.methods.chemistry_methods import _conc
+from PySDM.dynamics.impl.chemistry_utils import AQUEOUS_COMPOUNDS
 
 
 class Acidity(DerivedAttribute):
@@ -36,33 +40,34 @@ class Acidity(DerivedAttribute):
         self.conc = {}
         for key, val in AQUEOUS_COMPOUNDS.items():
             if len(val) &gt; 1:
-                self.conc[key] = builder.get_attribute(&#39;conc_&#39; + key)
-        super().__init__(builder, name=&#39;pH&#39;, dependencies=self.conc.values())
+                self.conc[key] = builder.get_attribute(&#34;conc_&#34; + key)
+        super().__init__(builder, name=&#34;pH&#34;, dependencies=self.conc.values())
         self.environment = builder.particulator.environment
-        self.cell_id = builder.get_attribute(&#39;cell id&#39;)
-        self.particles = builder.particulator
+        self.cell_id = builder.get_attribute(&#34;cell id&#34;)
 
     def allocate(self, idx):
         super().allocate(idx)
-        self.data[:] = const.pH_w
+        self.data[:] = self.formulae.constants.pH_w
 
     def recalculate(self):
-        dynamic = self.particles.dynamics[&#39;AqueousChemistry&#39;]
+        dynamic = self.particulator.dynamics[&#34;AqueousChemistry&#34;]
 
-        cell_id = self.cell_id.get()
-        N_mIII = self.conc[&#34;N_mIII&#34;].get()
-        N_V = self.conc[&#34;N_V&#34;].get()
-        C_IV = self.conc[&#34;C_IV&#34;].get()
-        S_IV = self.conc[&#34;S_IV&#34;].get()
-        S_VI = self.conc[&#34;S_VI&#34;].get()
-
-        self.particulator.bck.equilibrate_H(
-            dynamic.equilibrium_consts, cell_id, N_mIII, N_V, C_IV, S_IV, S_VI,
-            dynamic.do_chemistry_flag, self.data,
+        self.particulator.backend.equilibrate_H(
+            equilibrium_consts=dynamic.equilibrium_consts,
+            cell_id=self.cell_id.get(),
+            conc=_conc(
+                N_mIII=self.conc[&#34;N_mIII&#34;].get(),
+                N_V=self.conc[&#34;N_V&#34;].get(),
+                C_IV=self.conc[&#34;C_IV&#34;].get(),
+                S_IV=self.conc[&#34;S_IV&#34;].get(),
+                S_VI=self.conc[&#34;S_VI&#34;].get(),
+            ),
+            do_chemistry_flag=dynamic.do_chemistry_flag,
+            pH=self.data,
             H_min=dynamic.pH_H_min,
             H_max=dynamic.pH_H_max,
             ionic_strength_threshold=dynamic.ionic_strength_threshold,
-            rtol=dynamic.pH_rtol
+            rtol=dynamic.pH_rtol,
         )</code></pre>
 </details>
 </section>
@@ -90,33 +95,34 @@ class Acidity(DerivedAttribute):
         self.conc = {}
         for key, val in AQUEOUS_COMPOUNDS.items():
             if len(val) &gt; 1:
-                self.conc[key] = builder.get_attribute(&#39;conc_&#39; + key)
-        super().__init__(builder, name=&#39;pH&#39;, dependencies=self.conc.values())
+                self.conc[key] = builder.get_attribute(&#34;conc_&#34; + key)
+        super().__init__(builder, name=&#34;pH&#34;, dependencies=self.conc.values())
         self.environment = builder.particulator.environment
-        self.cell_id = builder.get_attribute(&#39;cell id&#39;)
-        self.particles = builder.particulator
+        self.cell_id = builder.get_attribute(&#34;cell id&#34;)
 
     def allocate(self, idx):
         super().allocate(idx)
-        self.data[:] = const.pH_w
+        self.data[:] = self.formulae.constants.pH_w
 
     def recalculate(self):
-        dynamic = self.particles.dynamics[&#39;AqueousChemistry&#39;]
+        dynamic = self.particulator.dynamics[&#34;AqueousChemistry&#34;]
 
-        cell_id = self.cell_id.get()
-        N_mIII = self.conc[&#34;N_mIII&#34;].get()
-        N_V = self.conc[&#34;N_V&#34;].get()
-        C_IV = self.conc[&#34;C_IV&#34;].get()
-        S_IV = self.conc[&#34;S_IV&#34;].get()
-        S_VI = self.conc[&#34;S_VI&#34;].get()
-
-        self.particulator.bck.equilibrate_H(
-            dynamic.equilibrium_consts, cell_id, N_mIII, N_V, C_IV, S_IV, S_VI,
-            dynamic.do_chemistry_flag, self.data,
+        self.particulator.backend.equilibrate_H(
+            equilibrium_consts=dynamic.equilibrium_consts,
+            cell_id=self.cell_id.get(),
+            conc=_conc(
+                N_mIII=self.conc[&#34;N_mIII&#34;].get(),
+                N_V=self.conc[&#34;N_V&#34;].get(),
+                C_IV=self.conc[&#34;C_IV&#34;].get(),
+                S_IV=self.conc[&#34;S_IV&#34;].get(),
+                S_VI=self.conc[&#34;S_VI&#34;].get(),
+            ),
+            do_chemistry_flag=dynamic.do_chemistry_flag,
+            pH=self.data,
             H_min=dynamic.pH_H_min,
             H_max=dynamic.pH_H_max,
             ionic_strength_threshold=dynamic.ionic_strength_threshold,
-            rtol=dynamic.pH_rtol
+            rtol=dynamic.pH_rtol,
         )</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -137,7 +143,7 @@ class Acidity(DerivedAttribute):
 </summary>
 <pre><code class="python">def allocate(self, idx):
     super().allocate(idx)
-    self.data[:] = const.pH_w</code></pre>
+    self.data[:] = self.formulae.constants.pH_w</code></pre>
 </details>
 </dd>
 <dt id="PySDM.attributes.chemistry.acidity.Acidity.recalculate"><code class="name flex">
@@ -150,22 +156,24 @@ class Acidity(DerivedAttribute):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def recalculate(self):
-    dynamic = self.particles.dynamics[&#39;AqueousChemistry&#39;]
+    dynamic = self.particulator.dynamics[&#34;AqueousChemistry&#34;]
 
-    cell_id = self.cell_id.get()
-    N_mIII = self.conc[&#34;N_mIII&#34;].get()
-    N_V = self.conc[&#34;N_V&#34;].get()
-    C_IV = self.conc[&#34;C_IV&#34;].get()
-    S_IV = self.conc[&#34;S_IV&#34;].get()
-    S_VI = self.conc[&#34;S_VI&#34;].get()
-
-    self.particulator.bck.equilibrate_H(
-        dynamic.equilibrium_consts, cell_id, N_mIII, N_V, C_IV, S_IV, S_VI,
-        dynamic.do_chemistry_flag, self.data,
+    self.particulator.backend.equilibrate_H(
+        equilibrium_consts=dynamic.equilibrium_consts,
+        cell_id=self.cell_id.get(),
+        conc=_conc(
+            N_mIII=self.conc[&#34;N_mIII&#34;].get(),
+            N_V=self.conc[&#34;N_V&#34;].get(),
+            C_IV=self.conc[&#34;C_IV&#34;].get(),
+            S_IV=self.conc[&#34;S_IV&#34;].get(),
+            S_VI=self.conc[&#34;S_VI&#34;].get(),
+        ),
+        do_chemistry_flag=dynamic.do_chemistry_flag,
+        pH=self.data,
         H_min=dynamic.pH_H_min,
         H_max=dynamic.pH_H_max,
         ionic_strength_threshold=dynamic.ionic_strength_threshold,
-        rtol=dynamic.pH_rtol
+        rtol=dynamic.pH_rtol,
     )</code></pre>
 </details>
 </dd>

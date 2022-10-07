@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>PySDM.attributes.impl.attribute API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="logic around `PySDM.attributes.impl.attribute.Attribute` - the parent class for all attributes" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,12 +22,17 @@
 <h1 class="title">Module <code>PySDM.attributes.impl.attribute</code></h1>
 </header>
 <section id="section-intro">
+<p>logic around <code><a title="PySDM.attributes.impl.attribute.Attribute" href="#PySDM.attributes.impl.attribute.Attribute">Attribute</a></code> - the parent class for all attributes</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Attribute:
+<pre><code class="python">&#34;&#34;&#34;
+logic around `PySDM.attributes.impl.attribute.Attribute` - the parent class for all attributes
+&#34;&#34;&#34;
 
+
+class Attribute:
     def __init__(self, builder, name, dtype=float, size=0):
         self.particulator = builder.particulator
         self.timestamp: int = 0
@@ -40,15 +45,11 @@
     def allocate(self, idx):
         if self.size &gt;= 1:
             self.data = self.particulator.IndexedStorage.empty(
-                idx,
-                (self.size, self.particulator.n_sd),
-                dtype=self.dtype
+                idx, (self.size, self.particulator.n_sd), dtype=self.dtype
             )
         else:
             self.data = self.particulator.IndexedStorage.empty(
-                idx,
-                (self.particulator.n_sd,),
-                dtype=self.dtype
+                idx, (self.particulator.n_sd,), dtype=self.dtype
             )
 
     def set_data(self, data):
@@ -88,7 +89,6 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Attribute:
-
     def __init__(self, builder, name, dtype=float, size=0):
         self.particulator = builder.particulator
         self.timestamp: int = 0
@@ -101,15 +101,11 @@
     def allocate(self, idx):
         if self.size &gt;= 1:
             self.data = self.particulator.IndexedStorage.empty(
-                idx,
-                (self.size, self.particulator.n_sd),
-                dtype=self.dtype
+                idx, (self.size, self.particulator.n_sd), dtype=self.dtype
             )
         else:
             self.data = self.particulator.IndexedStorage.empty(
-                idx,
-                (self.particulator.n_sd,),
-                dtype=self.dtype
+                idx, (self.particulator.n_sd,), dtype=self.dtype
             )
 
     def set_data(self, data):
@@ -148,15 +144,11 @@
 <pre><code class="python">def allocate(self, idx):
     if self.size &gt;= 1:
         self.data = self.particulator.IndexedStorage.empty(
-            idx,
-            (self.size, self.particulator.n_sd),
-            dtype=self.dtype
+            idx, (self.size, self.particulator.n_sd), dtype=self.dtype
         )
     else:
         self.data = self.particulator.IndexedStorage.empty(
-            idx,
-            (self.particulator.n_sd,),
-            dtype=self.dtype
+            idx, (self.particulator.n_sd,), dtype=self.dtype
         )</code></pre>
 </details>
 </dd>

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>PySDM.attributes.chemistry.concentration API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="concentrations (intensive, derived attributes)" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,21 +22,26 @@
 <h1 class="title">Module <code>PySDM.attributes.chemistry.concentration</code></h1>
 </header>
 <section id="section-intro">
+<p>concentrations (intensive, derived attributes)</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from PySDM.attributes.impl.intensive_attribute import IntensiveAttribute
+<pre><code class="python">&#34;&#34;&#34;
+concentrations (intensive, derived attributes)
+&#34;&#34;&#34;
+from PySDM.attributes.impl.intensive_attribute import IntensiveAttribute
 
 
 class ConcentrationImpl(IntensiveAttribute):
     def __init__(self, builder, *, what):
-        super().__init__(builder, name=&#34;conc_&#34;+what, base=&#34;moles_&#34;+what)
+        super().__init__(builder, name=&#34;conc_&#34; + what, base=&#34;moles_&#34; + what)
 
 
 def make_concentration_factory(what):
     def _factory(builder):
         return ConcentrationImpl(builder, what=what)
+
     return _factory</code></pre>
 </details>
 </section>
@@ -59,6 +64,7 @@ def make_concentration_factory(what):
 <pre><code class="python">def make_concentration_factory(what):
     def _factory(builder):
         return ConcentrationImpl(builder, what=what)
+
     return _factory</code></pre>
 </details>
 </dd>
@@ -79,7 +85,7 @@ def make_concentration_factory(what):
 </summary>
 <pre><code class="python">class ConcentrationImpl(IntensiveAttribute):
     def __init__(self, builder, *, what):
-        super().__init__(builder, name=&#34;conc_&#34;+what, base=&#34;moles_&#34;+what)</code></pre>
+        super().__init__(builder, name=&#34;conc_&#34; + what, base=&#34;moles_&#34; + what)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">

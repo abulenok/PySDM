@@ -35,23 +35,30 @@ handled by [PyMPDATA](http://github.com/atmos-cloud-sim-uj/PyMPDATA/)
 &#34;&#34;&#34;
 
 import numpy as np
-from PySDM.state.mesh import Mesh
-from PySDM.initialisation.r_wet_init import r_wet_init, default_rtol
-from PySDM.initialisation.multiplicities import discretise_n
-from ._moist import _Moist
-from ..state import arakawa_c
+
+from PySDM.environments.impl.moist import Moist
+from PySDM.impl.mesh import Mesh
+from PySDM.initialisation.equilibrate_wet_radii import (
+    default_rtol,
+    equilibrate_wet_radii,
+)
+from PySDM.initialisation.sampling import spectral_sampling
+
+from ..impl import arakawa_c
 
 
-class Kinematic2D(_Moist):
-    def __init__(self, dt, grid, size, rhod_of):
-        super().__init__(dt, Mesh(grid, size), [])
+class Kinematic2D(Moist):
+    def __init__(self, *, dt, grid, size, rhod_of, mixed_phase=False):
+        super().__init__(dt, Mesh(grid, size), [], mixed_phase=mixed_phase)
         self.rhod_of = rhod_of
+        self.formulae = None
 
     def register(self, builder):
         super().register(builder)
         self.formulae = builder.particulator.formulae
         rhod = builder.particulator.Storage.from_ndarray(
-            arakawa_c.make_rhod(self.mesh.grid, self.rhod_of).ravel())
+            arakawa_c.make_rhod(self.mesh.grid, self.rhod_of).ravel()
+        )
         self._values[&#34;current&#34;][&#34;rhod&#34;] = rhod
         self._tmp[&#34;rhod&#34;] = rhod
 
@@ -59,61 +66,71 @@ class Kinematic2D(_Moist):
     def dv(self):
         return self.mesh.dv
 
-    def init_attributes(self, *,
-                        spatial_discretisation,
-                        kappa,
-                        spectral_discretisation = None,
-                        spectro_glacial_discretisation = None,
-                        rtol=default_rtol
-                        ):
+    def init_attributes(
+        self,
+        *,
+        spatial_discretisation,
+        kappa,
+        dry_radius_spectrum,
+        rtol=default_rtol,
+        n_sd=None
+    ):
         super().sync()
         self.notify()
-
-        assert spectro_glacial_discretisation is None or spectral_discretisation is None
-
+        n_sd = n_sd or self.particulator.n_sd
         attributes = {}
-        with np.errstate(all=&#39;raise&#39;):
-            positions = spatial_discretisation.sample(self.mesh.grid, self.particulator.n_sd)
-            attributes[&#39;cell id&#39;], attributes[&#39;cell origin&#39;], attributes[&#39;position in cell&#39;] = \
-                self.mesh.cellular_attributes(positions)
-            if spectral_discretisation:
-                r_dry, n_per_kg = spectral_discretisation.sample(self.particulator.n_sd)
-            elif spectro_glacial_discretisation:
-                r_dry, T_fz, n_per_kg = spectro_glacial_discretisation.sample(
-                    self.particulator.n_sd)
-                attributes[&#39;freezing temperature&#39;] = T_fz
-            else:
-                raise NotImplementedError()
+        with np.errstate(all=&#34;raise&#34;):
+            positions = spatial_discretisation.sample(self.mesh.grid, n_sd)
+            (
+                attributes[&#34;cell id&#34;],
+                attributes[&#34;cell origin&#34;],
+                attributes[&#34;position in cell&#34;],
+            ) = self.mesh.cellular_attributes(positions)
+        with np.errstate(all=&#34;raise&#34;):
+            positions = spatial_discretisation.sample(self.mesh.grid, n_sd)
+            (
+                attributes[&#34;cell id&#34;],
+                attributes[&#34;cell origin&#34;],
+                attributes[&#34;position in cell&#34;],
+            ) = self.mesh.cellular_attributes(positions)
 
-            attributes[&#39;dry volume&#39;] = self.formulae.trivia.volume(radius=r_dry)
-            attributes[&#39;kappa times dry volume&#39;] = kappa * attributes[&#39;dry volume&#39;]
+            r_dry, n_per_kg = spectral_sampling.ConstantMultiplicity(
+                spectrum=dry_radius_spectrum
+            ).sample(n_sd)
+
+            attributes[&#34;dry volume&#34;] = self.formulae.trivia.volume(radius=r_dry)
+            attributes[&#34;kappa times dry volume&#34;] = kappa * attributes[&#34;dry volume&#34;]
             if kappa == 0:
                 r_wet = r_dry
             else:
-                r_wet = r_wet_init(
+                r_wet = equilibrate_wet_radii(
                     r_dry=r_dry,
                     environment=self,
-                    kappa_times_dry_volume=attributes[&#39;kappa times dry volume&#39;],
+                    kappa_times_dry_volume=attributes[&#34;kappa times dry volume&#34;],
                     rtol=rtol,
-                    cell_id=attributes[&#39;cell id&#39;]
+                    cell_id=attributes[&#34;cell id&#34;],
                 )
-            rhod = self[&#39;rhod&#39;].to_ndarray()
-            cell_id = attributes[&#39;cell id&#39;]
+            rhod = self[&#34;rhod&#34;].to_ndarray()
+            cell_id = attributes[&#34;cell id&#34;]
             domain_volume = np.prod(np.array(self.mesh.size))
 
-        attributes[&#39;n&#39;] = discretise_n(n_per_kg * rhod[cell_id] * domain_volume)
-        attributes[&#39;volume&#39;] = self.formulae.trivia.volume(radius=r_wet)
+        attributes[&#34;n&#34;] = n_per_kg * rhod[cell_id] * domain_volume
+        attributes[&#34;volume&#34;] = self.formulae.trivia.volume(radius=r_wet)
 
         return attributes
 
     def get_thd(self):
-        return self.particulator.dynamics[&#39;EulerianAdvection&#39;].solvers[&#39;th&#39;].advectee.get()
+        return (
+            self.particulator.dynamics[&#34;EulerianAdvection&#34;].solvers[&#34;th&#34;].advectee.get()
+        )
 
     def get_qv(self):
-        return self.particulator.dynamics[&#39;EulerianAdvection&#39;].solvers[&#39;qv&#39;].advectee.get()
+        return (
+            self.particulator.dynamics[&#34;EulerianAdvection&#34;].solvers[&#34;qv&#34;].advectee.get()
+        )
 
     def sync(self):
-        self.particulator.dynamics[&#39;EulerianAdvection&#39;].solvers.wait()
+        self.particulator.dynamics[&#34;EulerianAdvection&#34;].solvers.wait()
         super().sync()</code></pre>
 </details>
 </section>
@@ -128,7 +145,7 @@ class Kinematic2D(_Moist):
 <dl>
 <dt id="PySDM.environments.kinematic_2d.Kinematic2D"><code class="flex name class">
 <span>class <span class="ident">Kinematic2D</span></span>
-<span>(</span><span>dt, grid, size, rhod_of)</span>
+<span>(</span><span>*, dt, grid, size, rhod_of, mixed_phase=False)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -136,16 +153,18 @@ class Kinematic2D(_Moist):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Kinematic2D(_Moist):
-    def __init__(self, dt, grid, size, rhod_of):
-        super().__init__(dt, Mesh(grid, size), [])
+<pre><code class="python">class Kinematic2D(Moist):
+    def __init__(self, *, dt, grid, size, rhod_of, mixed_phase=False):
+        super().__init__(dt, Mesh(grid, size), [], mixed_phase=mixed_phase)
         self.rhod_of = rhod_of
+        self.formulae = None
 
     def register(self, builder):
         super().register(builder)
         self.formulae = builder.particulator.formulae
         rhod = builder.particulator.Storage.from_ndarray(
-            arakawa_c.make_rhod(self.mesh.grid, self.rhod_of).ravel())
+            arakawa_c.make_rhod(self.mesh.grid, self.rhod_of).ravel()
+        )
         self._values[&#34;current&#34;][&#34;rhod&#34;] = rhod
         self._tmp[&#34;rhod&#34;] = rhod
 
@@ -153,66 +172,76 @@ class Kinematic2D(_Moist):
     def dv(self):
         return self.mesh.dv
 
-    def init_attributes(self, *,
-                        spatial_discretisation,
-                        kappa,
-                        spectral_discretisation = None,
-                        spectro_glacial_discretisation = None,
-                        rtol=default_rtol
-                        ):
+    def init_attributes(
+        self,
+        *,
+        spatial_discretisation,
+        kappa,
+        dry_radius_spectrum,
+        rtol=default_rtol,
+        n_sd=None
+    ):
         super().sync()
         self.notify()
-
-        assert spectro_glacial_discretisation is None or spectral_discretisation is None
-
+        n_sd = n_sd or self.particulator.n_sd
         attributes = {}
-        with np.errstate(all=&#39;raise&#39;):
-            positions = spatial_discretisation.sample(self.mesh.grid, self.particulator.n_sd)
-            attributes[&#39;cell id&#39;], attributes[&#39;cell origin&#39;], attributes[&#39;position in cell&#39;] = \
-                self.mesh.cellular_attributes(positions)
-            if spectral_discretisation:
-                r_dry, n_per_kg = spectral_discretisation.sample(self.particulator.n_sd)
-            elif spectro_glacial_discretisation:
-                r_dry, T_fz, n_per_kg = spectro_glacial_discretisation.sample(
-                    self.particulator.n_sd)
-                attributes[&#39;freezing temperature&#39;] = T_fz
-            else:
-                raise NotImplementedError()
+        with np.errstate(all=&#34;raise&#34;):
+            positions = spatial_discretisation.sample(self.mesh.grid, n_sd)
+            (
+                attributes[&#34;cell id&#34;],
+                attributes[&#34;cell origin&#34;],
+                attributes[&#34;position in cell&#34;],
+            ) = self.mesh.cellular_attributes(positions)
+        with np.errstate(all=&#34;raise&#34;):
+            positions = spatial_discretisation.sample(self.mesh.grid, n_sd)
+            (
+                attributes[&#34;cell id&#34;],
+                attributes[&#34;cell origin&#34;],
+                attributes[&#34;position in cell&#34;],
+            ) = self.mesh.cellular_attributes(positions)
 
-            attributes[&#39;dry volume&#39;] = self.formulae.trivia.volume(radius=r_dry)
-            attributes[&#39;kappa times dry volume&#39;] = kappa * attributes[&#39;dry volume&#39;]
+            r_dry, n_per_kg = spectral_sampling.ConstantMultiplicity(
+                spectrum=dry_radius_spectrum
+            ).sample(n_sd)
+
+            attributes[&#34;dry volume&#34;] = self.formulae.trivia.volume(radius=r_dry)
+            attributes[&#34;kappa times dry volume&#34;] = kappa * attributes[&#34;dry volume&#34;]
             if kappa == 0:
                 r_wet = r_dry
             else:
-                r_wet = r_wet_init(
+                r_wet = equilibrate_wet_radii(
                     r_dry=r_dry,
                     environment=self,
-                    kappa_times_dry_volume=attributes[&#39;kappa times dry volume&#39;],
+                    kappa_times_dry_volume=attributes[&#34;kappa times dry volume&#34;],
                     rtol=rtol,
-                    cell_id=attributes[&#39;cell id&#39;]
+                    cell_id=attributes[&#34;cell id&#34;],
                 )
-            rhod = self[&#39;rhod&#39;].to_ndarray()
-            cell_id = attributes[&#39;cell id&#39;]
+            rhod = self[&#34;rhod&#34;].to_ndarray()
+            cell_id = attributes[&#34;cell id&#34;]
             domain_volume = np.prod(np.array(self.mesh.size))
 
-        attributes[&#39;n&#39;] = discretise_n(n_per_kg * rhod[cell_id] * domain_volume)
-        attributes[&#39;volume&#39;] = self.formulae.trivia.volume(radius=r_wet)
+        attributes[&#34;n&#34;] = n_per_kg * rhod[cell_id] * domain_volume
+        attributes[&#34;volume&#34;] = self.formulae.trivia.volume(radius=r_wet)
 
         return attributes
 
     def get_thd(self):
-        return self.particulator.dynamics[&#39;EulerianAdvection&#39;].solvers[&#39;th&#39;].advectee.get()
+        return (
+            self.particulator.dynamics[&#34;EulerianAdvection&#34;].solvers[&#34;th&#34;].advectee.get()
+        )
 
     def get_qv(self):
-        return self.particulator.dynamics[&#39;EulerianAdvection&#39;].solvers[&#39;qv&#39;].advectee.get()
+        return (
+            self.particulator.dynamics[&#34;EulerianAdvection&#34;].solvers[&#34;qv&#34;].advectee.get()
+        )
 
     def sync(self):
-        self.particulator.dynamics[&#39;EulerianAdvection&#39;].solvers.wait()
+        self.particulator.dynamics[&#34;EulerianAdvection&#34;].solvers.wait()
         super().sync()</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li>PySDM.environments._moist._Moist</li>
+<li><a title="PySDM.environments.impl.moist.Moist" href="impl/moist.html#PySDM.environments.impl.moist.Moist">Moist</a></li>
 </ul>
 <h3>Instance variables</h3>
 <dl>
@@ -241,7 +270,9 @@ def dv(self):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_qv(self):
-    return self.particulator.dynamics[&#39;EulerianAdvection&#39;].solvers[&#39;qv&#39;].advectee.get()</code></pre>
+    return (
+        self.particulator.dynamics[&#34;EulerianAdvection&#34;].solvers[&#34;qv&#34;].advectee.get()
+    )</code></pre>
 </details>
 </dd>
 <dt id="PySDM.environments.kinematic_2d.Kinematic2D.get_thd"><code class="name flex">
@@ -254,11 +285,13 @@ def dv(self):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_thd(self):
-    return self.particulator.dynamics[&#39;EulerianAdvection&#39;].solvers[&#39;th&#39;].advectee.get()</code></pre>
+    return (
+        self.particulator.dynamics[&#34;EulerianAdvection&#34;].solvers[&#34;th&#34;].advectee.get()
+    )</code></pre>
 </details>
 </dd>
 <dt id="PySDM.environments.kinematic_2d.Kinematic2D.init_attributes"><code class="name flex">
-<span>def <span class="ident">init_attributes</span></span>(<span>self, *, spatial_discretisation, kappa, spectral_discretisation=None, spectro_glacial_discretisation=None, rtol=1e-05)</span>
+<span>def <span class="ident">init_attributes</span></span>(<span>self, *, spatial_discretisation, kappa, dry_radius_spectrum, rtol=1e-05, n_sd=None)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -266,50 +299,56 @@ def dv(self):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def init_attributes(self, *,
-                    spatial_discretisation,
-                    kappa,
-                    spectral_discretisation = None,
-                    spectro_glacial_discretisation = None,
-                    rtol=default_rtol
-                    ):
+<pre><code class="python">def init_attributes(
+    self,
+    *,
+    spatial_discretisation,
+    kappa,
+    dry_radius_spectrum,
+    rtol=default_rtol,
+    n_sd=None
+):
     super().sync()
     self.notify()
-
-    assert spectro_glacial_discretisation is None or spectral_discretisation is None
-
+    n_sd = n_sd or self.particulator.n_sd
     attributes = {}
-    with np.errstate(all=&#39;raise&#39;):
-        positions = spatial_discretisation.sample(self.mesh.grid, self.particulator.n_sd)
-        attributes[&#39;cell id&#39;], attributes[&#39;cell origin&#39;], attributes[&#39;position in cell&#39;] = \
-            self.mesh.cellular_attributes(positions)
-        if spectral_discretisation:
-            r_dry, n_per_kg = spectral_discretisation.sample(self.particulator.n_sd)
-        elif spectro_glacial_discretisation:
-            r_dry, T_fz, n_per_kg = spectro_glacial_discretisation.sample(
-                self.particulator.n_sd)
-            attributes[&#39;freezing temperature&#39;] = T_fz
-        else:
-            raise NotImplementedError()
+    with np.errstate(all=&#34;raise&#34;):
+        positions = spatial_discretisation.sample(self.mesh.grid, n_sd)
+        (
+            attributes[&#34;cell id&#34;],
+            attributes[&#34;cell origin&#34;],
+            attributes[&#34;position in cell&#34;],
+        ) = self.mesh.cellular_attributes(positions)
+    with np.errstate(all=&#34;raise&#34;):
+        positions = spatial_discretisation.sample(self.mesh.grid, n_sd)
+        (
+            attributes[&#34;cell id&#34;],
+            attributes[&#34;cell origin&#34;],
+            attributes[&#34;position in cell&#34;],
+        ) = self.mesh.cellular_attributes(positions)
 
-        attributes[&#39;dry volume&#39;] = self.formulae.trivia.volume(radius=r_dry)
-        attributes[&#39;kappa times dry volume&#39;] = kappa * attributes[&#39;dry volume&#39;]
+        r_dry, n_per_kg = spectral_sampling.ConstantMultiplicity(
+            spectrum=dry_radius_spectrum
+        ).sample(n_sd)
+
+        attributes[&#34;dry volume&#34;] = self.formulae.trivia.volume(radius=r_dry)
+        attributes[&#34;kappa times dry volume&#34;] = kappa * attributes[&#34;dry volume&#34;]
         if kappa == 0:
             r_wet = r_dry
         else:
-            r_wet = r_wet_init(
+            r_wet = equilibrate_wet_radii(
                 r_dry=r_dry,
                 environment=self,
-                kappa_times_dry_volume=attributes[&#39;kappa times dry volume&#39;],
+                kappa_times_dry_volume=attributes[&#34;kappa times dry volume&#34;],
                 rtol=rtol,
-                cell_id=attributes[&#39;cell id&#39;]
+                cell_id=attributes[&#34;cell id&#34;],
             )
-        rhod = self[&#39;rhod&#39;].to_ndarray()
-        cell_id = attributes[&#39;cell id&#39;]
+        rhod = self[&#34;rhod&#34;].to_ndarray()
+        cell_id = attributes[&#34;cell id&#34;]
         domain_volume = np.prod(np.array(self.mesh.size))
 
-    attributes[&#39;n&#39;] = discretise_n(n_per_kg * rhod[cell_id] * domain_volume)
-    attributes[&#39;volume&#39;] = self.formulae.trivia.volume(radius=r_wet)
+    attributes[&#34;n&#34;] = n_per_kg * rhod[cell_id] * domain_volume
+    attributes[&#34;volume&#34;] = self.formulae.trivia.volume(radius=r_wet)
 
     return attributes</code></pre>
 </details>
@@ -327,7 +366,8 @@ def dv(self):
     super().register(builder)
     self.formulae = builder.particulator.formulae
     rhod = builder.particulator.Storage.from_ndarray(
-        arakawa_c.make_rhod(self.mesh.grid, self.rhod_of).ravel())
+        arakawa_c.make_rhod(self.mesh.grid, self.rhod_of).ravel()
+    )
     self._values[&#34;current&#34;][&#34;rhod&#34;] = rhod
     self._tmp[&#34;rhod&#34;] = rhod</code></pre>
 </details>
@@ -342,7 +382,7 @@ def dv(self):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def sync(self):
-    self.particulator.dynamics[&#39;EulerianAdvection&#39;].solvers.wait()
+    self.particulator.dynamics[&#34;EulerianAdvection&#34;].solvers.wait()
     super().sync()</code></pre>
 </details>
 </dd>

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>PySDM.exporters API documentation</title>
-<meta name="description" content="Exporters module" />
+<meta name="description" content="Exporters handling output to metadata-rich file formats incl. netCDF and VTK" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,16 +22,18 @@
 <h1 class="title">Module <code>PySDM.exporters</code></h1>
 </header>
 <section id="section-intro">
-<p>Exporters module</p>
+<p>Exporters handling output to metadata-rich file formats incl. netCDF and VTK</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;
-Exporters module
+Exporters handling output to metadata-rich file formats incl. netCDF and VTK
 &#34;&#34;&#34;
+from .netcdf_exporter import NetCDFExporter
+from .netcdf_exporter_1d import NetCDFExporter_1d, readNetCDF_1d
 from .vtk_exporter import VTKExporter
-from .netcdf_exporter import NetCDFExporter</code></pre>
+from .vtk_exporter_1d import VTKExporter_1d</code></pre>
 </details>
 </section>
 <section>
@@ -39,11 +41,20 @@ from .netcdf_exporter import NetCDFExporter</code></pre>
 <dl>
 <dt><code class="name"><a title="PySDM.exporters.netcdf_exporter" href="netcdf_exporter.html">PySDM.exporters.netcdf_exporter</a></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>netCDF exporter implemented using
+<a href="https://docs.scipy.org/doc/scipy/reference/tutorial/io.html#netcdf">SciPy.io.netcdf_file</a></p></div>
+</dd>
+<dt><code class="name"><a title="PySDM.exporters.netcdf_exporter_1d" href="netcdf_exporter_1d.html">PySDM.exporters.netcdf_exporter_1d</a></code></dt>
+<dd>
+<div class="desc"><p>netcdf exporter of scalar products for 1d simulations</p></div>
 </dd>
 <dt><code class="name"><a title="PySDM.exporters.vtk_exporter" href="vtk_exporter.html">PySDM.exporters.vtk_exporter</a></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>VTK exporter implemented using <a href="https://pypi.org/project/pyevtk/">pyevtk</a></p></div>
+</dd>
+<dt><code class="name"><a title="PySDM.exporters.vtk_exporter_1d" href="vtk_exporter_1d.html">PySDM.exporters.vtk_exporter_1d</a></code></dt>
+<dd>
+<div class="desc"><p>vtk exporter of particle attributes for 1d simulations</p></div>
 </dd>
 </dl>
 </section>
@@ -68,7 +79,9 @@ from .netcdf_exporter import NetCDFExporter</code></pre>
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
 <li><code><a title="PySDM.exporters.netcdf_exporter" href="netcdf_exporter.html">PySDM.exporters.netcdf_exporter</a></code></li>
+<li><code><a title="PySDM.exporters.netcdf_exporter_1d" href="netcdf_exporter_1d.html">PySDM.exporters.netcdf_exporter_1d</a></code></li>
 <li><code><a title="PySDM.exporters.vtk_exporter" href="vtk_exporter.html">PySDM.exporters.vtk_exporter</a></code></li>
+<li><code><a title="PySDM.exporters.vtk_exporter_1d" href="vtk_exporter_1d.html">PySDM.exporters.vtk_exporter_1d</a></code></li>
 </ul>
 </li>
 </ul>
