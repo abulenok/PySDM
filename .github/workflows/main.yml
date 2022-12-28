@@ -49,7 +49,9 @@ jobs:
 
       - env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pytest -p no:unraisableexception -We tests\smoke_tests\dejong_and_mackay_2022
+        run: |
+          pytest -p no:unraisableexception -We tests\unit_tests\attributes\test_multiplicities.py
+#          pytest -p no:unraisableexception -We tests\smoke_tests\dejong_and_mackay_2022
 
 #       - if: ${{ failure() }}
 #         uses: mxschmitt/action-tmate@v3
