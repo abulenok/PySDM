@@ -8,7 +8,7 @@ from PySDM.attributes.impl.base_attribute import BaseAttribute
 
 
 class Multiplicities(BaseAttribute):
-    TYPE = np.int64
+    TYPE = int
     MAX_VALUE = np.iinfo(TYPE).max
 
     def __init__(self, builder):
