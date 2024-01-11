@@ -32,6 +32,14 @@ class ThrustStorageOperators:
         """,
     )
 
+    __add_elementwise_with_multiplier_body = trtc.For(
+        ("output", "addend", "multiplier"),
+        "i",
+        """
+            output[i] += multiplier * addend[i];
+        """,
+    )
+
     __add_body = trtc.For(
         ["output", "addend"],
         "i",
@@ -42,12 +50,22 @@ class ThrustStorageOperators:
 
     @nice_thrust(**NICE_THRUST_FLAGS)
     def add(self, output, addend):
-        loop = (
-            self.__add_elementwise_body
-            if Storage.is_storage(addend)
-            else self.__add_body
-        )
-        loop.launch_n(output.shape[0], self.thrust((output, addend)))
+        args = (output, addend)
+
+        if Storage.is_storage(addend):
+            loop = self.__add_elementwise_body
+        elif (
+            isinstance(addend, tuple)
+            and len(addend) == 3
+            and isinstance(addend[0], float)
+            and addend[1] == "*"
+            and isinstance(addend[2], Storage)
+        ):
+            loop = self.__add_elementwise_with_multiplier_body
+            args = (output, addend[2], addend[0])
+        else:
+            loop = self.__add_body
+        loop.launch_n(output.shape[0], self.thrust(args))
 
     @nice_thrust(**NICE_THRUST_FLAGS)
     def amin(self, data):

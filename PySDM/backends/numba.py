@@ -7,6 +7,7 @@ from PySDM.backends.impl_numba.methods.collisions_methods import CollisionsMetho
 from PySDM.backends.impl_numba.methods.condensation_methods import CondensationMethods
 from PySDM.backends.impl_numba.methods.displacement_methods import DisplacementMethods
 from PySDM.backends.impl_numba.methods.freezing_methods import FreezingMethods
+from PySDM.backends.impl_numba.methods.isotope_methods import IsotopeMethods
 from PySDM.backends.impl_numba.methods.moments_methods import MomentsMethods
 from PySDM.backends.impl_numba.methods.physics_methods import PhysicsMethods
 from PySDM.backends.impl_numba.methods.terminal_velocity_methods import (
@@ -30,6 +31,7 @@ class Numba(  # pylint: disable=too-many-ancestors,duplicate-code
     DisplacementMethods,
     TerminalVelocityMethods,
     NumbaStorageHolder,
+    IsotopeMethods,
 ):
     default_croupier = "local"
 

@@ -13,6 +13,7 @@ from PySDM.backends.impl_thrust_rtc.methods.displacement_methods import (
     DisplacementMethods,
 )
 from PySDM.backends.impl_thrust_rtc.methods.freezing_methods import FreezingMethods
+from PySDM.backends.impl_thrust_rtc.methods.isotope_methods import IsotopeMethods
 from PySDM.backends.impl_thrust_rtc.methods.moments_methods import MomentsMethods
 from PySDM.backends.impl_thrust_rtc.methods.physics_methods import PhysicsMethods
 from PySDM.backends.impl_thrust_rtc.methods.terminal_velocity_methods import (
@@ -36,6 +37,7 @@ class ThrustRTC(  # pylint: disable=duplicate-code,too-many-ancestors
     DisplacementMethods,
     TerminalVelocityMethods,
     FreezingMethods,
+    IsotopeMethods,
 ):
     ENABLE = True
 

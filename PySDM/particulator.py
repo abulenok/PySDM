@@ -426,3 +426,8 @@ class Particulator(
                 position_in_cell=position_in_cell,
                 n_substeps=n_substeps,
             )
+
+    def isotopic_fractionation(self, heavy_isotopes: tuple):
+        self.backend.isotopic_fractionation()
+        for isotope in heavy_isotopes:
+            self.attributes.mark_updated(f"moles_{isotope}")

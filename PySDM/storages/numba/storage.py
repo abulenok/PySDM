@@ -13,7 +13,6 @@ from PySDM.storages.numba import operators as ops
 
 
 class Storage(BaseStorage):
-
     FLOAT = np.float64
     INT = np.int64
     BOOL = np.bool_
@@ -55,9 +54,19 @@ class Storage(BaseStorage):
         self.data[key] = value.data if self.is_storage(value) else value
         return self
 
-    def __iadd__(self, other: Union["Storage", np.ndarray, Number]) -> "Storage":
+    def __iadd__(
+        self, other: Union["Storage", (float, str, "Storage"), np.ndarray, Number]
+    ) -> "Storage":
         if isinstance(other, Storage):
             ops.add(self.data, other.data)
+        elif (
+            isinstance(other, tuple)
+            and len(other) == 3
+            and isinstance(other[0], float)
+            and other[1] == "*"
+            and isinstance(other[2], Storage)
+        ):
+            ops.add_with_multiplier(self.data, other[2].data, other[0])
         else:
             ops.add(self.data, other)
         return self
