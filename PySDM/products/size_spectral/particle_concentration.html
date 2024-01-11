@@ -53,11 +53,15 @@ class ParticleConcentration(ConcentrationProduct):
 
     def _impl(self, **kwargs):
         self._download_moment_to_buffer(
-            attr=&#34;volume&#34;,
+            attr=&#34;water mass&#34;,
             rank=0,
             filter_range=(
-                self.formulae.trivia.volume(self.radius_range[0]),
-                self.formulae.trivia.volume(self.radius_range[1]),
+                self.formulae.particle_shape_and_density.volume_to_mass(
+                    self.formulae.trivia.volume(radius=self.radius_range[0])
+                ),
+                self.formulae.particle_shape_and_density.volume_to_mass(
+                    self.formulae.trivia.volume(self.radius_range[1])
+                ),
             ),
         )
         return super()._impl(**kwargs)
@@ -83,7 +87,9 @@ class ParticleSpecificConcentration(ParticleConcentration):
 </code></dt>
 <dd>
 <div class="desc"><p>Helper class that provides a standard way to create an ABC using
-inheritance.</p></div>
+inheritance.</p>
+<p><code>stp</code> toggles expressing the concentration in terms of standard temperature
+and pressure conditions (ground level of the ICAO standard atmosphere, zero humidity)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -103,11 +109,15 @@ inheritance.</p></div>
 
     def _impl(self, **kwargs):
         self._download_moment_to_buffer(
-            attr=&#34;volume&#34;,
+            attr=&#34;water mass&#34;,
             rank=0,
             filter_range=(
-                self.formulae.trivia.volume(self.radius_range[0]),
-                self.formulae.trivia.volume(self.radius_range[1]),
+                self.formulae.particle_shape_and_density.volume_to_mass(
+                    self.formulae.trivia.volume(radius=self.radius_range[0])
+                ),
+                self.formulae.particle_shape_and_density.volume_to_mass(
+                    self.formulae.trivia.volume(self.radius_range[1])
+                ),
             ),
         )
         return super()._impl(**kwargs)</code></pre>
@@ -138,7 +148,9 @@ inheritance.</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>Helper class that provides a standard way to create an ABC using
-inheritance.</p></div>
+inheritance.</p>
+<p><code>stp</code> toggles expressing the concentration in terms of standard temperature
+and pressure conditions (ground level of the ICAO standard atmosphere, zero humidity)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>

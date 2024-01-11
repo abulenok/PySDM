@@ -66,6 +66,14 @@ def make_storage_class(BACKEND):  # pylint: disable=too-many-statements
             &#34;&#34;&#34;,
         )
 
+        __add_elementwise_with_multiplier_body = trtc.For(
+            (&#34;output&#34;, &#34;addend&#34;, &#34;multiplier&#34;),
+            &#34;i&#34;,
+            &#34;&#34;&#34;
+                output[i] += multiplier * addend[i];
+            &#34;&#34;&#34;,
+        )
+
         __add_body = trtc.For(
             [&#34;output&#34;, &#34;addend&#34;],
             &#34;i&#34;,
@@ -77,16 +85,31 @@ def make_storage_class(BACKEND):  # pylint: disable=too-many-statements
         @staticmethod
         @nice_thrust(**NICE_THRUST_FLAGS)
         def add(output, addend):
+            args = (output, addend)
             if hasattr(addend, &#34;data&#34;):
                 loop = Impl.__add_elementwise_body
+            elif (
+                isinstance(addend, tuple)
+                and len(addend) == 3
+                and isinstance(addend[0], float)
+                and addend[1] == &#34;*&#34;
+                and isinstance(addend[2], Storage)
+            ):
+                loop = Impl.__add_elementwise_with_multiplier_body
+                args = (output, addend[2], addend[0])
             else:
                 loop = Impl.__add_body
-            loop.launch_n(output.shape[0], Impl.thrust((output, addend)))
+            loop.launch_n(n=output.shape[0], args=Impl.thrust(args))
 
         @staticmethod
         @nice_thrust(**NICE_THRUST_FLAGS)
         def amin(data):
             return trtc.Reduce(data, Impl.thrust(np.inf), trtc.Minimum())
+
+        @staticmethod
+        @nice_thrust(**NICE_THRUST_FLAGS)
+        def amax(data):
+            return trtc.Reduce(data, Impl.thrust(-np.inf), trtc.Maximum())
 
         __row_modulo_body = trtc.For(
             (&#34;output&#34;, &#34;divisor&#34;, &#34;length&#34;),
@@ -311,6 +334,19 @@ def make_storage_class(BACKEND):  # pylint: disable=too-many-statements
                 n=(output.shape[0]), args=(Impl.thrust((output, divisor)))
             )
 
+        __exp_body = trtc.For(
+            (&#34;output&#34;,),
+            &#34;i&#34;,
+            &#34;&#34;&#34;
+                output[i] = exp(output[i]);
+            &#34;&#34;&#34;,
+        )
+
+        @staticmethod
+        @nice_thrust(**NICE_THRUST_FLAGS)
+        def exp(output):
+            Impl.__exp_body.launch_n(output.shape[0], Impl.thrust((output,)))
+
     class Storage(StorageBase):
         FLOAT = BACKEND._get_np_dtype()
         INT = np.int64
@@ -435,6 +471,9 @@ def make_storage_class(BACKEND):  # pylint: disable=too-many-statements
         def amin(self):
             return Impl.amin(self.data)
 
+        def amax(self):
+            return Impl.amax(self.data)
+
         def all(self):
             assert self.dtype is self.BOOL
             return self.amin()
@@ -526,17 +565,21 @@ def make_storage_class(BACKEND):  # pylint: disable=too-many-statements
             Impl.divide_if_not_zero(self, divisor)
             return self
 
-        def fill(self, value):
-            if isinstance(value, Storage):
-                trtc.Copy(value.data, self.data)
+        def fill(self, other):
+            if isinstance(other, Storage):
+                trtc.Copy(other.data, self.data)
             else:
-                if isinstance(value, int):
-                    dvalue = trtc.DVInt64(value)
-                elif isinstance(value, float):
-                    dvalue = BACKEND._get_floating_point(value)
+                if isinstance(other, int):
+                    dvalue = trtc.DVInt64(other)
+                elif isinstance(other, float):
+                    dvalue = BACKEND._get_floating_point(other)
                 else:
                     raise TypeError(&#34;Only Storage, int and float are supported.&#34;)
                 trtc.Fill(self.data, dvalue)
+            return self
+
+        def exp(self):
+            Impl.exp(self)
             return self
 
     return Storage</code></pre>
@@ -582,6 +625,14 @@ def make_storage_class(BACKEND):  # pylint: disable=too-many-statements
             &#34;&#34;&#34;,
         )
 
+        __add_elementwise_with_multiplier_body = trtc.For(
+            (&#34;output&#34;, &#34;addend&#34;, &#34;multiplier&#34;),
+            &#34;i&#34;,
+            &#34;&#34;&#34;
+                output[i] += multiplier * addend[i];
+            &#34;&#34;&#34;,
+        )
+
         __add_body = trtc.For(
             [&#34;output&#34;, &#34;addend&#34;],
             &#34;i&#34;,
@@ -593,16 +644,31 @@ def make_storage_class(BACKEND):  # pylint: disable=too-many-statements
         @staticmethod
         @nice_thrust(**NICE_THRUST_FLAGS)
         def add(output, addend):
+            args = (output, addend)
             if hasattr(addend, &#34;data&#34;):
                 loop = Impl.__add_elementwise_body
+            elif (
+                isinstance(addend, tuple)
+                and len(addend) == 3
+                and isinstance(addend[0], float)
+                and addend[1] == &#34;*&#34;
+                and isinstance(addend[2], Storage)
+            ):
+                loop = Impl.__add_elementwise_with_multiplier_body
+                args = (output, addend[2], addend[0])
             else:
                 loop = Impl.__add_body
-            loop.launch_n(output.shape[0], Impl.thrust((output, addend)))
+            loop.launch_n(n=output.shape[0], args=Impl.thrust(args))
 
         @staticmethod
         @nice_thrust(**NICE_THRUST_FLAGS)
         def amin(data):
             return trtc.Reduce(data, Impl.thrust(np.inf), trtc.Minimum())
+
+        @staticmethod
+        @nice_thrust(**NICE_THRUST_FLAGS)
+        def amax(data):
+            return trtc.Reduce(data, Impl.thrust(-np.inf), trtc.Maximum())
 
         __row_modulo_body = trtc.For(
             (&#34;output&#34;, &#34;divisor&#34;, &#34;length&#34;),
@@ -827,6 +893,19 @@ def make_storage_class(BACKEND):  # pylint: disable=too-many-statements
                 n=(output.shape[0]), args=(Impl.thrust((output, divisor)))
             )
 
+        __exp_body = trtc.For(
+            (&#34;output&#34;,),
+            &#34;i&#34;,
+            &#34;&#34;&#34;
+                output[i] = exp(output[i]);
+            &#34;&#34;&#34;,
+        )
+
+        @staticmethod
+        @nice_thrust(**NICE_THRUST_FLAGS)
+        def exp(output):
+            Impl.__exp_body.launch_n(output.shape[0], Impl.thrust((output,)))
+
     class Storage(StorageBase):
         FLOAT = BACKEND._get_np_dtype()
         INT = np.int64
@@ -951,6 +1030,9 @@ def make_storage_class(BACKEND):  # pylint: disable=too-many-statements
         def amin(self):
             return Impl.amin(self.data)
 
+        def amax(self):
+            return Impl.amax(self.data)
+
         def all(self):
             assert self.dtype is self.BOOL
             return self.amin()
@@ -1042,17 +1124,21 @@ def make_storage_class(BACKEND):  # pylint: disable=too-many-statements
             Impl.divide_if_not_zero(self, divisor)
             return self
 
-        def fill(self, value):
-            if isinstance(value, Storage):
-                trtc.Copy(value.data, self.data)
+        def fill(self, other):
+            if isinstance(other, Storage):
+                trtc.Copy(other.data, self.data)
             else:
-                if isinstance(value, int):
-                    dvalue = trtc.DVInt64(value)
-                elif isinstance(value, float):
-                    dvalue = BACKEND._get_floating_point(value)
+                if isinstance(other, int):
+                    dvalue = trtc.DVInt64(other)
+                elif isinstance(other, float):
+                    dvalue = BACKEND._get_floating_point(other)
                 else:
                     raise TypeError(&#34;Only Storage, int and float are supported.&#34;)
                 trtc.Fill(self.data, dvalue)
+            return self
+
+        def exp(self):
+            Impl.exp(self)
             return self
 
     return Storage</code></pre>

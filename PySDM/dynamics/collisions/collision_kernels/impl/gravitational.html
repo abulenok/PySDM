@@ -38,7 +38,7 @@ class Gravitational:  # pylint: disable=too-few-public-methods
     def register(self, builder):
         self.particulator = builder.particulator
         builder.request_attribute(&#34;radius&#34;)
-        builder.request_attribute(&#34;terminal velocity&#34;)
+        builder.request_attribute(&#34;relative fall velocity&#34;)
         self.pair_tmp = self.particulator.PairwiseStorage.empty(
             self.particulator.n_sd // 2, dtype=float
         )</code></pre>
@@ -70,7 +70,7 @@ class Gravitational:  # pylint: disable=too-few-public-methods
     def register(self, builder):
         self.particulator = builder.particulator
         builder.request_attribute(&#34;radius&#34;)
-        builder.request_attribute(&#34;terminal velocity&#34;)
+        builder.request_attribute(&#34;relative fall velocity&#34;)
         self.pair_tmp = self.particulator.PairwiseStorage.empty(
             self.particulator.n_sd // 2, dtype=float
         )</code></pre>
@@ -94,7 +94,7 @@ class Gravitational:  # pylint: disable=too-few-public-methods
 <pre><code class="python">def register(self, builder):
     self.particulator = builder.particulator
     builder.request_attribute(&#34;radius&#34;)
-    builder.request_attribute(&#34;terminal velocity&#34;)
+    builder.request_attribute(&#34;relative fall velocity&#34;)
     self.pair_tmp = self.particulator.PairwiseStorage.empty(
         self.particulator.n_sd // 2, dtype=float
     )</code></pre>

@@ -159,6 +159,7 @@ class Simulation:
         assert variant in (&#34;apparent&#34;, &#34;actual&#34;)
 
         formulae = Formulae(
+            particle_shape_and_density=&#34;MixedPhaseSpheres&#34;,
             heterogeneous_ice_nucleation_rate=&#34;ABIFM&#34;,
             constants={
                 &#34;ABIFM_M&#34;: self.cases[abifm_params_case][&#34;ABIFM_m&#34;],
@@ -240,10 +241,10 @@ def simulation(
         seed=seed,
         heterogeneous_ice_nucleation_rate=heterogeneous_ice_nucleation_rate,
         constants=constants,
+        particle_shape_and_density=&#34;MixedPhaseSpheres&#34;,
     )
-    builder = Builder(n_sd=n_sd, backend=CPU(formulae=formulae))
     env = Box(dt=time_step, dv=volume)
-    builder.set_environment(env)
+    builder = Builder(n_sd=n_sd, backend=CPU(formulae=formulae), environment=env)
     builder.add_dynamic(Freezing(singular=False))
 
     if hasattr(spectrum, &#34;s_geom&#34;) and spectrum.s_geom == 1:
@@ -253,11 +254,11 @@ def simulation(
     else:
         _isa, _conc = spectral_sampling.ConstantMultiplicity(spectrum).sample(n_sd)
     attributes = {
-        &#34;n&#34;: discretise_multiplicities(_conc * volume),
+        &#34;multiplicity&#34;: discretise_multiplicities(_conc * volume),
         &#34;immersed surface area&#34;: _isa,
         &#34;volume&#34;: np.full(n_sd, droplet_volume),
     }
-    np.testing.assert_almost_equal(attributes[&#34;n&#34;], multiplicity)
+    np.testing.assert_almost_equal(attributes[&#34;multiplicity&#34;], multiplicity)
     products = (
         IceWaterContent(name=&#34;qi&#34;),
         TotalUnfrozenImmersedSurfaceArea(name=&#34;A_tot&#34;),
@@ -327,10 +328,10 @@ def simulation(
         seed=seed,
         heterogeneous_ice_nucleation_rate=heterogeneous_ice_nucleation_rate,
         constants=constants,
+        particle_shape_and_density=&#34;MixedPhaseSpheres&#34;,
     )
-    builder = Builder(n_sd=n_sd, backend=CPU(formulae=formulae))
     env = Box(dt=time_step, dv=volume)
-    builder.set_environment(env)
+    builder = Builder(n_sd=n_sd, backend=CPU(formulae=formulae), environment=env)
     builder.add_dynamic(Freezing(singular=False))
 
     if hasattr(spectrum, &#34;s_geom&#34;) and spectrum.s_geom == 1:
@@ -340,11 +341,11 @@ def simulation(
     else:
         _isa, _conc = spectral_sampling.ConstantMultiplicity(spectrum).sample(n_sd)
     attributes = {
-        &#34;n&#34;: discretise_multiplicities(_conc * volume),
+        &#34;multiplicity&#34;: discretise_multiplicities(_conc * volume),
         &#34;immersed surface area&#34;: _isa,
         &#34;volume&#34;: np.full(n_sd, droplet_volume),
     }
-    np.testing.assert_almost_equal(attributes[&#34;n&#34;], multiplicity)
+    np.testing.assert_almost_equal(attributes[&#34;multiplicity&#34;], multiplicity)
     products = (
         IceWaterContent(name=&#34;qi&#34;),
         TotalUnfrozenImmersedSurfaceArea(name=&#34;A_tot&#34;),
@@ -508,6 +509,7 @@ def simulation(
         assert variant in (&#34;apparent&#34;, &#34;actual&#34;)
 
         formulae = Formulae(
+            particle_shape_and_density=&#34;MixedPhaseSpheres&#34;,
             heterogeneous_ice_nucleation_rate=&#34;ABIFM&#34;,
             constants={
                 &#34;ABIFM_M&#34;: self.cases[abifm_params_case][&#34;ABIFM_m&#34;],
@@ -631,6 +633,7 @@ def simulation(
     assert variant in (&#34;apparent&#34;, &#34;actual&#34;)
 
     formulae = Formulae(
+        particle_shape_and_density=&#34;MixedPhaseSpheres&#34;,
         heterogeneous_ice_nucleation_rate=&#34;ABIFM&#34;,
         constants={
             &#34;ABIFM_M&#34;: self.cases[abifm_params_case][&#34;ABIFM_m&#34;],

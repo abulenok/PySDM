@@ -71,12 +71,12 @@ class ParticleAttributesFactory:
 
         for attr in req_attr.values():
             if isinstance(attr, (DerivedAttribute, DummyAttribute)):
+                if attr.name in attributes:
+                    raise ValueError(
+                        f&#34;attribute &#39;{attr.name}&#39; is a dummy/derived one,&#34;
+                        f&#34; but values were provided&#34;
+                    )
                 attr.allocate(idx)
-            if isinstance(attr, DummyAttribute) and attr.name in attributes:
-                raise ValueError(
-                    f&#34;attribute &#39;{attr.name}&#39; indicated as dummy&#34;
-                    f&#34; but values were provided&#34;
-                )
 
         extensive_keys = {}
         maximum_keys = {}
@@ -102,10 +102,10 @@ class ParticleAttributesFactory:
         )
         helper(req_attr, attributes, maximum_attr, maximum_attributes, maximum_keys)
 
-        n = req_attr[&#34;n&#34;]
+        n = req_attr[&#34;multiplicity&#34;]
         n.allocate(idx)
-        n.init(attributes[&#34;n&#34;])
-        req_attr[&#34;n&#34;].data = particulator.IndexedStorage.indexed(idx, n.data)
+        n.init(attributes[&#34;multiplicity&#34;])
+        req_attr[&#34;multiplicity&#34;].data = particulator.IndexedStorage.indexed(idx, n.data)
         cell_id = req_attr[&#34;cell id&#34;]
         cell_id.allocate(idx)
         cell_id.init(attributes[&#34;cell id&#34;])
@@ -202,12 +202,12 @@ class ParticleAttributesFactory:
 
         for attr in req_attr.values():
             if isinstance(attr, (DerivedAttribute, DummyAttribute)):
+                if attr.name in attributes:
+                    raise ValueError(
+                        f&#34;attribute &#39;{attr.name}&#39; is a dummy/derived one,&#34;
+                        f&#34; but values were provided&#34;
+                    )
                 attr.allocate(idx)
-            if isinstance(attr, DummyAttribute) and attr.name in attributes:
-                raise ValueError(
-                    f&#34;attribute &#39;{attr.name}&#39; indicated as dummy&#34;
-                    f&#34; but values were provided&#34;
-                )
 
         extensive_keys = {}
         maximum_keys = {}
@@ -233,10 +233,10 @@ class ParticleAttributesFactory:
         )
         helper(req_attr, attributes, maximum_attr, maximum_attributes, maximum_keys)
 
-        n = req_attr[&#34;n&#34;]
+        n = req_attr[&#34;multiplicity&#34;]
         n.allocate(idx)
-        n.init(attributes[&#34;n&#34;])
-        req_attr[&#34;n&#34;].data = particulator.IndexedStorage.indexed(idx, n.data)
+        n.init(attributes[&#34;multiplicity&#34;])
+        req_attr[&#34;multiplicity&#34;].data = particulator.IndexedStorage.indexed(idx, n.data)
         cell_id = req_attr[&#34;cell id&#34;]
         cell_id.allocate(idx)
         cell_id.init(attributes[&#34;cell id&#34;])
@@ -324,12 +324,12 @@ def attributes(particulator, req_attr, attributes):
 
     for attr in req_attr.values():
         if isinstance(attr, (DerivedAttribute, DummyAttribute)):
+            if attr.name in attributes:
+                raise ValueError(
+                    f&#34;attribute &#39;{attr.name}&#39; is a dummy/derived one,&#34;
+                    f&#34; but values were provided&#34;
+                )
             attr.allocate(idx)
-        if isinstance(attr, DummyAttribute) and attr.name in attributes:
-            raise ValueError(
-                f&#34;attribute &#39;{attr.name}&#39; indicated as dummy&#34;
-                f&#34; but values were provided&#34;
-            )
 
     extensive_keys = {}
     maximum_keys = {}
@@ -355,10 +355,10 @@ def attributes(particulator, req_attr, attributes):
     )
     helper(req_attr, attributes, maximum_attr, maximum_attributes, maximum_keys)
 
-    n = req_attr[&#34;n&#34;]
+    n = req_attr[&#34;multiplicity&#34;]
     n.allocate(idx)
-    n.init(attributes[&#34;n&#34;])
-    req_attr[&#34;n&#34;].data = particulator.IndexedStorage.indexed(idx, n.data)
+    n.init(attributes[&#34;multiplicity&#34;])
+    req_attr[&#34;multiplicity&#34;].data = particulator.IndexedStorage.indexed(idx, n.data)
     cell_id = req_attr[&#34;cell id&#34;]
     cell_id.allocate(idx)
     cell_id.init(attributes[&#34;cell id&#34;])

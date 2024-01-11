@@ -30,6 +30,7 @@
 <pre><code class="python">&#34;&#34;&#34;
 GPU implementation of backend methods for water condensation/evaporation
 &#34;&#34;&#34;
+from functools import cached_property
 from typing import Dict, Optional
 
 from PySDM.backends.impl_common.storage_utils import StorageBase
@@ -40,15 +41,44 @@ from PySDM.backends.impl_thrust_rtc.nice_thrust import nice_thrust
 from ..conf import trtc
 from ..methods.thrust_rtc_backend_methods import ThrustRTCBackendMethods
 
+ARGS_VARS = (
+    &#34;x_old&#34;,
+    &#34;dt&#34;,
+    &#34;kappa&#34;,
+    &#34;f_org&#34;,
+    &#34;rd3&#34;,
+    &#34;_T&#34;,
+    &#34;_RH&#34;,
+    &#34;_lv&#34;,
+    &#34;_pvs&#34;,
+    &#34;Dr&#34;,
+    &#34;Kr&#34;,
+)
+
+
+def args(arg):
+    return f&#34;args[{ARGS_VARS.index(arg)}]&#34;
+
 
 class CondensationMethods(
     ThrustRTCBackendMethods
 ):  # pylint: disable=too-many-instance-attributes
     keys = (&#34;T&#34;, &#34;p&#34;, &#34;pv&#34;, &#34;lv&#34;, &#34;pvs&#34;, &#34;RH&#34;, &#34;DTp&#34;, &#34;lambdaK&#34;, &#34;lambdaD&#34;)
 
+    @cached_property
+    def __calculate_m_l(self):
+        return trtc.For(
+            param_names=(&#34;ml&#34;, &#34;water_mass&#34;, &#34;multiplicity&#34;, &#34;cell_id&#34;),
+            name_iter=&#34;i&#34;,
+            body=&#34;&#34;&#34;
+            atomicAdd((real_type*) &amp;ml[cell_id[i]], multiplicity[i] * water_mass[i]);
+            &#34;&#34;&#34;.replace(
+                &#34;real_type&#34;, self._get_c_type()
+            ),
+        )
+
     def __init__(self):
         ThrustRTCBackendMethods.__init__(self)
-        phys = self.formulae
         self.RH_rtol = None
         self.adaptive = None
         self.max_iters = None
@@ -56,41 +86,20 @@ class CondensationMethods(
         self.ml_new: Optional[StorageBase] = None
         self.T: Optional[StorageBase] = None
         self.dthd_dt_pred: Optional[StorageBase] = None
-        self.dqv_dt_pred: Optional[StorageBase] = None
-        self.rhod_mean: Optional[StorageBase] = None
+        self.d_water_vapour_mixing_ratio__dt_predicted: Optional[StorageBase] = None
+        self.drhod_dt_pred: Optional[StorageBase] = None
+        self.rhod_copy: Optional[StorageBase] = None
+        self.m_d: Optional[StorageBase] = None
         self.vars: Optional[Dict[str, StorageBase]] = None
-        const = self.formulae.constants
+        self.vars_data: Optional[Dict] = None
 
-        self.__calculate_m_l = trtc.For(
-            (&#34;ml&#34;, &#34;v&#34;, &#34;n&#34;, &#34;cell_id&#34;),
-            &#34;i&#34;,
-            f&#34;&#34;&#34;
-            atomicAdd((real_type*) &amp;ml[cell_id[i]], n[i] * v[i] * {const.rho_w});
-        &#34;&#34;&#34;.replace(
-                &#34;real_type&#34;, self._get_c_type()
-            ),
-        )
-
-        args_vars = (
-            &#34;x_old&#34;,
-            &#34;dt&#34;,
-            &#34;kappa&#34;,
-            &#34;f_org&#34;,
-            &#34;rd3&#34;,
-            &#34;_T&#34;,
-            &#34;_RH&#34;,
-            &#34;_lv&#34;,
-            &#34;_pvs&#34;,
-            &#34;Dr&#34;,
-            &#34;Kr&#34;,
-        )
-
-        def args(arg):
-            return f&#34;args[{args_vars.index(arg)}]&#34;
-
-        self.__update_volume = trtc.For(
-            (
-                &#34;v&#34;,
+    @cached_property
+    def __update_drop_masses(self):
+        phys = self.formulae
+        const = phys.constants
+        return trtc.For(
+            param_names=(
+                &#34;water_mass&#34;,
                 &#34;vdry&#34;,
                 *CondensationMethods.keys,
                 &#34;_kappa&#34;,
@@ -101,8 +110,8 @@ class CondensationMethods(
                 &#34;max_iters&#34;,
                 &#34;cell_id&#34;,
             ),
-            &#34;i&#34;,
-            f&#34;&#34;&#34;
+            name_iter=&#34;i&#34;,
+            body=f&#34;&#34;&#34;
             struct Minfun {{
                 static __device__ real_type value(real_type x_new, void* args_p) {{
                     auto args = static_cast&lt;real_type*&gt;(args_p);
@@ -146,12 +155,15 @@ class CondensationMethods(
             auto _lambdaK = lambdaK[cell_id[i]];
             auto _lambdaD = lambdaD[cell_id[i]];
 
-            auto x_old = {phys.condensation_coordinate.x.c_inline(volume=&#34;v[i]&#34;)};
-            auto r_old = {phys.trivia.radius.c_inline(volume=&#34;v[i]&#34;)};
+            auto v_old = {phys.particle_shape_and_density.mass_to_volume.c_inline(
+                mass=&#34;water_mass[i]&#34;
+            )};
+            auto x_old = {phys.condensation_coordinate.x.c_inline(volume=&#34;v_old&#34;)};
+            auto r_old = {phys.trivia.radius.c_inline(volume=&#34;v_old&#34;)};
             auto x_insane = {phys.condensation_coordinate.x.c_inline(volume=&#34;vdry[i]/100&#34;)};
             auto rd3 = vdry[i] / {const.PI_4_3};
             auto sgm = {phys.surface_tension.sigma.c_inline(
-                T=&#34;_T&#34;, v_wet=&#34;v[i]&#34;, v_dry=&#34;vdry[i]&#34;, f_org=&#34;_f_org[i]&#34;
+                T=&#34;_T&#34;, v_wet=&#34;v&#34;, v_dry=&#34;vdry[i]&#34;, f_org=&#34;_f_org[i]&#34;
             )};
             auto RH_eq = {phys.hygroscopicity.RH_eq.c_inline(
                 r=&#34;r_old&#34;, T=&#34;_T&#34;, kp=&#34;_kappa[i]&#34;, rd3=&#34;rd3&#34;, sgm=&#34;sgm&#34;
@@ -184,7 +196,7 @@ class CondensationMethods(
             }}
             real_type kappa = _kappa[i];
             real_type f_org = _f_org[i];
-            real_type args[] = {{{&#39;,&#39;.join(args_vars)}}}; // array
+            real_type args[] = {{{&#39;,&#39;.join(ARGS_VARS)}}}; // array
 
             if (dx_old == 0) {{
                 x_new = x_old;
@@ -230,58 +242,81 @@ class CondensationMethods(
                     x_new = x_old;
                 }}
             }}
-            v[i] = {phys.condensation_coordinate.volume.c_inline(x=&#34;x_new&#34;)};
+            auto v_new = {phys.condensation_coordinate.volume.c_inline(x=&#34;x_new&#34;)};
+            water_mass[i] = {phys.particle_shape_and_density.volume_to_mass.c_inline(
+                volume=&#34;v_new&#34;
+            )};
         &#34;&#34;&#34;.replace(
                 &#34;real_type&#34;, self._get_c_type()
             ),
         )
 
-        self.__pre_for = trtc.For(
-            (
+    @cached_property
+    def __pre_for(self):
+        return trtc.For(
+            param_names=(
                 &#34;dthd_dt_pred&#34;,
-                &#34;dqv_dt_pred&#34;,
-                &#34;rhod_mean&#34;,
+                &#34;d_water_vapour_mixing_ratio__dt_predicted&#34;,
+                &#34;drhod_dt_pred&#34;,
+                &#34;m_d&#34;,
                 &#34;pthd&#34;,
                 &#34;thd&#34;,
-                &#34;pqv&#34;,
-                &#34;qv&#34;,
+                &#34;predicted_water_vapour_mixing_ratio&#34;,
+                &#34;water_vapour_mixing_ratio&#34;,
                 &#34;prhod&#34;,
                 &#34;rhod&#34;,
                 &#34;dt&#34;,
                 &#34;RH_max&#34;,
+                &#34;dv&#34;,
             ),
-            &#34;i&#34;,
-            &#34;&#34;&#34;
+            name_iter=&#34;i&#34;,
+            body=&#34;&#34;&#34;
             dthd_dt_pred[i] = (pthd[i] - thd[i]) / dt;
-            dqv_dt_pred[i] = (pqv[i] - qv[i]) / dt;
-            rhod_mean[i] = (prhod[i] + rhod[i]) / 2;
+            d_water_vapour_mixing_ratio__dt_predicted[i] = (
+                predicted_water_vapour_mixing_ratio[i] - water_vapour_mixing_ratio[i]
+            ) / dt;
+            drhod_dt_pred[i] = (prhod[i] - rhod[i]) / dt;
+
+            m_d[i] = (prhod[i] + rhod[i]) / 2 * dv;
+
+            pthd[i] = thd[i];
+            predicted_water_vapour_mixing_ratio[i] = water_vapour_mixing_ratio[i];
+
             RH_max[i] = 0;
         &#34;&#34;&#34;,
         )
 
-        self.__pre = trtc.For(
-            (
+    @cached_property
+    def __pre(self):
+        phys = self.formulae
+        return trtc.For(
+            param_names=(
                 *CondensationMethods.keys,
                 &#34;dthd_dt_pred&#34;,
-                &#34;dqv_dt_pred&#34;,
-                &#34;rhod_mean&#34;,
-                &#34;thd&#34;,
-                &#34;qv&#34;,
-                &#34;rhod&#34;,
+                &#34;d_water_vapour_mixing_ratio__dt_predicted&#34;,
+                &#34;drhod_dt_pred&#34;,
+                &#34;pthd&#34;,
+                &#34;predicted_water_vapour_mixing_ratio&#34;,
+                &#34;rhod_copy&#34;,
                 &#34;dt&#34;,
                 &#34;RH_max&#34;,
             ),
-            &#34;i&#34;,
-            f&#34;&#34;&#34;
-            thd[i] += dt * dthd_dt_pred[i] / 2;
-            qv[i] += dt * dqv_dt_pred[i] / 2;
+            name_iter=&#34;i&#34;,
+            body=f&#34;&#34;&#34;
+            pthd[i] += dt * dthd_dt_pred[i] / 2;
+            predicted_water_vapour_mixing_ratio[i] += (
+                dt * d_water_vapour_mixing_ratio__dt_predicted[i] / 2
+            );
+            rhod_copy[i] += dt * drhod_dt_pred[i] / 2;
 
             T[i] = {phys.state_variable_triplet.T.c_inline(
-                rhod=&#39;rhod_mean[i]&#39;, thd=&#39;thd[i]&#39;)};
+                rhod=&#39;rhod_copy[i]&#39;, thd=&#39;pthd[i]&#39;)};
             p[i] = {phys.state_variable_triplet.p.c_inline(
-                rhod=&#39;rhod_mean[i]&#39;, T=&#39;T[i]&#39;, qv=&#39;qv[i]&#39;)};
+                rhod=&#39;rhod_copy[i]&#39;, T=&#39;T[i]&#39;,
+                water_vapour_mixing_ratio=&#39;predicted_water_vapour_mixing_ratio[i]&#39;
+            )};
             pv[i] = {phys.state_variable_triplet.pv.c_inline(
-                p=&#39;p[i]&#39;, qv=&#39;qv[i]&#39;)};
+                p=&#39;p[i]&#39;, water_vapour_mixing_ratio=&#39;predicted_water_vapour_mixing_ratio[i]&#39;)};
             lv[i] = {phys.latent_heat.lv.c_inline(
                 T=&#39;T[i]&#39;)};
             pvs[i] = {phys.saturation_vapour_pressure.pvs_Celsius.c_inline(
@@ -299,39 +334,51 @@ class CondensationMethods(
             ),
         )
 
-        self.__post = trtc.For(
-            (
+    @cached_property
+    def __post(self):
+        phys = self.formulae
+        return trtc.For(
+            param_names=(
                 &#34;dthd_dt_pred&#34;,
-                &#34;dqv_dt_pred&#34;,
-                &#34;rhod_mean&#34;,
-                &#34;thd&#34;,
-                &#34;qv&#34;,
-                &#34;rhod&#34;,
+                &#34;d_water_vapour_mixing_ratio__dt_predicted&#34;,
+                &#34;drhod_dt_pred&#34;,
+                &#34;pthd&#34;,
+                &#34;predicted_water_vapour_mixing_ratio&#34;,
+                &#34;rhod_copy&#34;,
                 &#34;dt&#34;,
                 &#34;ml_new&#34;,
                 &#34;ml_old&#34;,
-                &#34;dv_mean&#34;,
+                &#34;m_d&#34;,
                 &#34;T&#34;,
                 &#34;lv&#34;,
             ),
-            &#34;i&#34;,
-            f&#34;&#34;&#34;
+            name_iter=&#34;i&#34;,
+            body=f&#34;&#34;&#34;
             auto dml_dt = (ml_new[i] - ml_old[i]) / dt;
-            auto dqv_dt_corr = - dml_dt / (rhod_mean[i] * dv_mean);
+            auto d_water_vapour_mixing_ratio__dt_corrected = - dml_dt / m_d[i];
             auto dthd_dt_corr = {phys.state_variable_triplet.dthd_dt.c_inline(
-                rhod=&#39;rhod_mean[i]&#39;, thd=&#39;thd[i]&#39;, T=&#39;T[i]&#39;, dqv_dt=&#39;dqv_dt_corr&#39;, lv=&#39;lv[i]&#39;)};
-
-            thd[i] += dt * (dthd_dt_pred[i] / 2 + dthd_dt_corr);
-            qv[i] += dt * (dqv_dt_pred[i] / 2 + dqv_dt_corr);
+                rhod=&#39;rhod_copy[i]&#39;, thd=&#39;pthd[i]&#39;, T=&#39;T[i]&#39;,
+                d_water_vapour_mixing_ratio__dt=&#39;d_water_vapour_mixing_ratio__dt_corrected&#39;,
+                lv=&#39;lv[i]&#39;
+            )};
+            pthd[i] += dt * (dthd_dt_pred[i] / 2 + dthd_dt_corr);
+            predicted_water_vapour_mixing_ratio[i] += dt * (
+                d_water_vapour_mixing_ratio__dt_predicted[i] / 2 +
+                d_water_vapour_mixing_ratio__dt_corrected
+            );
+            rhod_copy[i] += dt * drhod_dt_pred[i] / 2;
             ml_old[i] = ml_new[i];
         &#34;&#34;&#34;.replace(
                 &#34;real_type&#34;, self._get_c_type()
             ),
         )
 
-    def calculate_m_l(self, ml, v, n, cell_id):
+    def calculate_m_l(self, ml, water_mass, multiplicity, cell_id):
         ml[:] = 0
-        self.__calculate_m_l.launch_n(len(n), (ml.data, v.data, n.data, cell_id.data))
+        self.__calculate_m_l.launch_n(
+            n=len(multiplicity),
+            args=(ml.data, water_mass.data, multiplicity.data, cell_id.data),
+        )
 
     # pylint: disable=unused-argument,too-many-locals
     @nice_thrust(**NICE_THRUST_FLAGS)
@@ -341,18 +388,18 @@ class CondensationMethods(
         solver,
         n_cell,
         cell_start_arg,
-        v,
+        water_mass,
         v_cr,
-        n,
+        multiplicity,
         vdry,
         idx,
         rhod,
         thd,
-        qv,
+        water_vapour_mixing_ratio,
         dv,
         prhod,
         pthd,
-        pqv,
+        predicted_water_vapour_mixing_ratio,
         kappa,
         f_org,
         rtol_x,
@@ -370,52 +417,53 @@ class CondensationMethods(
             counters[&#34;n_substeps&#34;][:] = 1  # TODO #527
 
         n_substeps = counters[&#34;n_substeps&#34;][0]
-        dv_mean = dv
 
         success[:] = True  # TODO #588
         dvfloat = self._get_floating_point
+        self.rhod_copy.fill(rhod)
 
         self.__pre_for.launch_n(
-            n_cell,
-            (
+            n=n_cell,
+            args=(
                 self.dthd_dt_pred.data,
-                self.dqv_dt_pred.data,
-                self.rhod_mean.data,
+                self.d_water_vapour_mixing_ratio__dt_predicted.data,
+                self.drhod_dt_pred.data,
+                self.m_d.data,
                 pthd.data,
                 thd.data,
-                pqv.data,
-                qv.data,
+                predicted_water_vapour_mixing_ratio.data,
+                water_vapour_mixing_ratio.data,
                 prhod.data,
-                rhod.data,
+                self.rhod_copy.data,
                 dvfloat(timestep),
                 RH_max.data,
+                dvfloat(dv),
             ),
         )
-
         timestep /= n_substeps
-        self.calculate_m_l(self.ml_old, v, n, cell_id)
+        self.calculate_m_l(self.ml_old, water_mass, multiplicity, cell_id)
 
         for _ in range(n_substeps):
             self.__pre.launch_n(
-                n_cell,
-                (
-                    *self.vars.values(),
+                n=n_cell,
+                args=(
+                    *self.vars_data.values(),
                     self.dthd_dt_pred.data,
-                    self.dqv_dt_pred.data,
-                    self.rhod_mean.data,
+                    self.d_water_vapour_mixing_ratio__dt_predicted.data,
+                    self.drhod_dt_pred.data,
                     pthd.data,
-                    pqv.data,
-                    rhod.data,
+                    predicted_water_vapour_mixing_ratio.data,
+                    self.rhod_copy.data,
                     dvfloat(timestep),
                     RH_max.data,
                 ),
             )
-            self.__update_volume.launch_n(
-                len(n),
-                (
-                    v.data,
+            self.__update_drop_masses.launch_n(
+                n=len(multiplicity),
+                args=(
+                    water_mass.data,
                     vdry.data,
-                    *self.vars.values(),
+                    *self.vars_data.values(),
                     kappa.data,
                     f_org.data,
                     dvfloat(timestep),
@@ -425,22 +473,22 @@ class CondensationMethods(
                     cell_id.data,
                 ),
             )
-            self.calculate_m_l(self.ml_new, v, n, cell_id)
+            self.calculate_m_l(self.ml_new, water_mass, multiplicity, cell_id)
             self.__post.launch_n(
-                n_cell,
-                (
+                n=n_cell,
+                args=(
                     self.dthd_dt_pred.data,
-                    self.dqv_dt_pred.data,
-                    self.rhod_mean.data,
+                    self.d_water_vapour_mixing_ratio__dt_predicted.data,
+                    self.drhod_dt_pred.data,
                     pthd.data,
-                    pqv.data,
-                    rhod.data,
+                    predicted_water_vapour_mixing_ratio.data,
+                    self.rhod_copy.data,
                     dvfloat(timestep),
                     self.ml_new.data,
                     self.ml_old.data,
-                    dvfloat(dv_mean),
-                    self.vars[&#34;T&#34;],
-                    self.vars[&#34;lv&#34;],
+                    self.m_d.data,
+                    self.vars[&#34;T&#34;].data,
+                    self.vars[&#34;lv&#34;].data,
                 ),
             )
 
@@ -460,16 +508,24 @@ class CondensationMethods(
         self.adaptive = adaptive
         self.RH_rtol = RH_rtol
         self.max_iters = max_iters
-        self.ml_old = self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype())
-        self.ml_new = self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype())
-        self.T = self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype())
-        self.dthd_dt_pred = self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype())
-        self.dqv_dt_pred = self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype())
-        self.rhod_mean = self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype())
+        for attr in (
+            &#34;ml_old&#34;,
+            &#34;ml_new&#34;,
+            &#34;T&#34;,
+            &#34;dthd_dt_pred&#34;,
+            &#34;d_water_vapour_mixing_ratio__dt_predicted&#34;,
+            &#34;drhod_dt_pred&#34;,
+            &#34;m_d&#34;,
+            &#34;rhod_copy&#34;,
+        ):
+            setattr(
+                self, attr, self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype())
+            )
         self.vars = {
-            key: self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype()).data
+            key: self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype())
             for key in CondensationMethods.keys
-        }</code></pre>
+        }
+        self.vars_data = {key: val.data for key, val in self.vars.items()}</code></pre>
 </details>
 </section>
 <section>
@@ -477,6 +533,22 @@ class CondensationMethods(
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="PySDM.backends.impl_thrust_rtc.methods.condensation_methods.args"><code class="name flex">
+<span>def <span class="ident">args</span></span>(<span>arg)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def args(arg):
+    return f&#34;args[{ARGS_VARS.index(arg)}]&#34;</code></pre>
+</details>
+</dd>
+</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
@@ -495,9 +567,20 @@ class CondensationMethods(
 ):  # pylint: disable=too-many-instance-attributes
     keys = (&#34;T&#34;, &#34;p&#34;, &#34;pv&#34;, &#34;lv&#34;, &#34;pvs&#34;, &#34;RH&#34;, &#34;DTp&#34;, &#34;lambdaK&#34;, &#34;lambdaD&#34;)
 
+    @cached_property
+    def __calculate_m_l(self):
+        return trtc.For(
+            param_names=(&#34;ml&#34;, &#34;water_mass&#34;, &#34;multiplicity&#34;, &#34;cell_id&#34;),
+            name_iter=&#34;i&#34;,
+            body=&#34;&#34;&#34;
+            atomicAdd((real_type*) &amp;ml[cell_id[i]], multiplicity[i] * water_mass[i]);
+            &#34;&#34;&#34;.replace(
+                &#34;real_type&#34;, self._get_c_type()
+            ),
+        )
+
     def __init__(self):
         ThrustRTCBackendMethods.__init__(self)
-        phys = self.formulae
         self.RH_rtol = None
         self.adaptive = None
         self.max_iters = None
@@ -505,41 +588,20 @@ class CondensationMethods(
         self.ml_new: Optional[StorageBase] = None
         self.T: Optional[StorageBase] = None
         self.dthd_dt_pred: Optional[StorageBase] = None
-        self.dqv_dt_pred: Optional[StorageBase] = None
-        self.rhod_mean: Optional[StorageBase] = None
+        self.d_water_vapour_mixing_ratio__dt_predicted: Optional[StorageBase] = None
+        self.drhod_dt_pred: Optional[StorageBase] = None
+        self.rhod_copy: Optional[StorageBase] = None
+        self.m_d: Optional[StorageBase] = None
         self.vars: Optional[Dict[str, StorageBase]] = None
-        const = self.formulae.constants
+        self.vars_data: Optional[Dict] = None
 
-        self.__calculate_m_l = trtc.For(
-            (&#34;ml&#34;, &#34;v&#34;, &#34;n&#34;, &#34;cell_id&#34;),
-            &#34;i&#34;,
-            f&#34;&#34;&#34;
-            atomicAdd((real_type*) &amp;ml[cell_id[i]], n[i] * v[i] * {const.rho_w});
-        &#34;&#34;&#34;.replace(
-                &#34;real_type&#34;, self._get_c_type()
-            ),
-        )
-
-        args_vars = (
-            &#34;x_old&#34;,
-            &#34;dt&#34;,
-            &#34;kappa&#34;,
-            &#34;f_org&#34;,
-            &#34;rd3&#34;,
-            &#34;_T&#34;,
-            &#34;_RH&#34;,
-            &#34;_lv&#34;,
-            &#34;_pvs&#34;,
-            &#34;Dr&#34;,
-            &#34;Kr&#34;,
-        )
-
-        def args(arg):
-            return f&#34;args[{args_vars.index(arg)}]&#34;
-
-        self.__update_volume = trtc.For(
-            (
-                &#34;v&#34;,
+    @cached_property
+    def __update_drop_masses(self):
+        phys = self.formulae
+        const = phys.constants
+        return trtc.For(
+            param_names=(
+                &#34;water_mass&#34;,
                 &#34;vdry&#34;,
                 *CondensationMethods.keys,
                 &#34;_kappa&#34;,
@@ -550,8 +612,8 @@ class CondensationMethods(
                 &#34;max_iters&#34;,
                 &#34;cell_id&#34;,
             ),
-            &#34;i&#34;,
-            f&#34;&#34;&#34;
+            name_iter=&#34;i&#34;,
+            body=f&#34;&#34;&#34;
             struct Minfun {{
                 static __device__ real_type value(real_type x_new, void* args_p) {{
                     auto args = static_cast&lt;real_type*&gt;(args_p);
@@ -595,12 +657,15 @@ class CondensationMethods(
             auto _lambdaK = lambdaK[cell_id[i]];
             auto _lambdaD = lambdaD[cell_id[i]];
 
-            auto x_old = {phys.condensation_coordinate.x.c_inline(volume=&#34;v[i]&#34;)};
-            auto r_old = {phys.trivia.radius.c_inline(volume=&#34;v[i]&#34;)};
+            auto v_old = {phys.particle_shape_and_density.mass_to_volume.c_inline(
+                mass=&#34;water_mass[i]&#34;
+            )};
+            auto x_old = {phys.condensation_coordinate.x.c_inline(volume=&#34;v_old&#34;)};
+            auto r_old = {phys.trivia.radius.c_inline(volume=&#34;v_old&#34;)};
             auto x_insane = {phys.condensation_coordinate.x.c_inline(volume=&#34;vdry[i]/100&#34;)};
             auto rd3 = vdry[i] / {const.PI_4_3};
             auto sgm = {phys.surface_tension.sigma.c_inline(
-                T=&#34;_T&#34;, v_wet=&#34;v[i]&#34;, v_dry=&#34;vdry[i]&#34;, f_org=&#34;_f_org[i]&#34;
+                T=&#34;_T&#34;, v_wet=&#34;v&#34;, v_dry=&#34;vdry[i]&#34;, f_org=&#34;_f_org[i]&#34;
             )};
             auto RH_eq = {phys.hygroscopicity.RH_eq.c_inline(
                 r=&#34;r_old&#34;, T=&#34;_T&#34;, kp=&#34;_kappa[i]&#34;, rd3=&#34;rd3&#34;, sgm=&#34;sgm&#34;
@@ -633,7 +698,7 @@ class CondensationMethods(
             }}
             real_type kappa = _kappa[i];
             real_type f_org = _f_org[i];
-            real_type args[] = {{{&#39;,&#39;.join(args_vars)}}}; // array
+            real_type args[] = {{{&#39;,&#39;.join(ARGS_VARS)}}}; // array
 
             if (dx_old == 0) {{
                 x_new = x_old;
@@ -679,58 +744,81 @@ class CondensationMethods(
                     x_new = x_old;
                 }}
             }}
-            v[i] = {phys.condensation_coordinate.volume.c_inline(x=&#34;x_new&#34;)};
+            auto v_new = {phys.condensation_coordinate.volume.c_inline(x=&#34;x_new&#34;)};
+            water_mass[i] = {phys.particle_shape_and_density.volume_to_mass.c_inline(
+                volume=&#34;v_new&#34;
+            )};
         &#34;&#34;&#34;.replace(
                 &#34;real_type&#34;, self._get_c_type()
             ),
         )
 
-        self.__pre_for = trtc.For(
-            (
+    @cached_property
+    def __pre_for(self):
+        return trtc.For(
+            param_names=(
                 &#34;dthd_dt_pred&#34;,
-                &#34;dqv_dt_pred&#34;,
-                &#34;rhod_mean&#34;,
+                &#34;d_water_vapour_mixing_ratio__dt_predicted&#34;,
+                &#34;drhod_dt_pred&#34;,
+                &#34;m_d&#34;,
                 &#34;pthd&#34;,
                 &#34;thd&#34;,
-                &#34;pqv&#34;,
-                &#34;qv&#34;,
+                &#34;predicted_water_vapour_mixing_ratio&#34;,
+                &#34;water_vapour_mixing_ratio&#34;,
                 &#34;prhod&#34;,
                 &#34;rhod&#34;,
                 &#34;dt&#34;,
                 &#34;RH_max&#34;,
+                &#34;dv&#34;,
             ),
-            &#34;i&#34;,
-            &#34;&#34;&#34;
+            name_iter=&#34;i&#34;,
+            body=&#34;&#34;&#34;
             dthd_dt_pred[i] = (pthd[i] - thd[i]) / dt;
-            dqv_dt_pred[i] = (pqv[i] - qv[i]) / dt;
-            rhod_mean[i] = (prhod[i] + rhod[i]) / 2;
+            d_water_vapour_mixing_ratio__dt_predicted[i] = (
+                predicted_water_vapour_mixing_ratio[i] - water_vapour_mixing_ratio[i]
+            ) / dt;
+            drhod_dt_pred[i] = (prhod[i] - rhod[i]) / dt;
+
+            m_d[i] = (prhod[i] + rhod[i]) / 2 * dv;
+
+            pthd[i] = thd[i];
+            predicted_water_vapour_mixing_ratio[i] = water_vapour_mixing_ratio[i];
+
             RH_max[i] = 0;
         &#34;&#34;&#34;,
         )
 
-        self.__pre = trtc.For(
-            (
+    @cached_property
+    def __pre(self):
+        phys = self.formulae
+        return trtc.For(
+            param_names=(
                 *CondensationMethods.keys,
                 &#34;dthd_dt_pred&#34;,
-                &#34;dqv_dt_pred&#34;,
-                &#34;rhod_mean&#34;,
-                &#34;thd&#34;,
-                &#34;qv&#34;,
-                &#34;rhod&#34;,
+                &#34;d_water_vapour_mixing_ratio__dt_predicted&#34;,
+                &#34;drhod_dt_pred&#34;,
+                &#34;pthd&#34;,
+                &#34;predicted_water_vapour_mixing_ratio&#34;,
+                &#34;rhod_copy&#34;,
                 &#34;dt&#34;,
                 &#34;RH_max&#34;,
             ),
-            &#34;i&#34;,
-            f&#34;&#34;&#34;
-            thd[i] += dt * dthd_dt_pred[i] / 2;
-            qv[i] += dt * dqv_dt_pred[i] / 2;
+            name_iter=&#34;i&#34;,
+            body=f&#34;&#34;&#34;
+            pthd[i] += dt * dthd_dt_pred[i] / 2;
+            predicted_water_vapour_mixing_ratio[i] += (
+                dt * d_water_vapour_mixing_ratio__dt_predicted[i] / 2
+            );
+            rhod_copy[i] += dt * drhod_dt_pred[i] / 2;
 
             T[i] = {phys.state_variable_triplet.T.c_inline(
-                rhod=&#39;rhod_mean[i]&#39;, thd=&#39;thd[i]&#39;)};
+                rhod=&#39;rhod_copy[i]&#39;, thd=&#39;pthd[i]&#39;)};
             p[i] = {phys.state_variable_triplet.p.c_inline(
-                rhod=&#39;rhod_mean[i]&#39;, T=&#39;T[i]&#39;, qv=&#39;qv[i]&#39;)};
+                rhod=&#39;rhod_copy[i]&#39;, T=&#39;T[i]&#39;,
+                water_vapour_mixing_ratio=&#39;predicted_water_vapour_mixing_ratio[i]&#39;
+            )};
             pv[i] = {phys.state_variable_triplet.pv.c_inline(
-                p=&#39;p[i]&#39;, qv=&#39;qv[i]&#39;)};
+                p=&#39;p[i]&#39;, water_vapour_mixing_ratio=&#39;predicted_water_vapour_mixing_ratio[i]&#39;)};
             lv[i] = {phys.latent_heat.lv.c_inline(
                 T=&#39;T[i]&#39;)};
             pvs[i] = {phys.saturation_vapour_pressure.pvs_Celsius.c_inline(
@@ -748,39 +836,51 @@ class CondensationMethods(
             ),
         )
 
-        self.__post = trtc.For(
-            (
+    @cached_property
+    def __post(self):
+        phys = self.formulae
+        return trtc.For(
+            param_names=(
                 &#34;dthd_dt_pred&#34;,
-                &#34;dqv_dt_pred&#34;,
-                &#34;rhod_mean&#34;,
-                &#34;thd&#34;,
-                &#34;qv&#34;,
-                &#34;rhod&#34;,
+                &#34;d_water_vapour_mixing_ratio__dt_predicted&#34;,
+                &#34;drhod_dt_pred&#34;,
+                &#34;pthd&#34;,
+                &#34;predicted_water_vapour_mixing_ratio&#34;,
+                &#34;rhod_copy&#34;,
                 &#34;dt&#34;,
                 &#34;ml_new&#34;,
                 &#34;ml_old&#34;,
-                &#34;dv_mean&#34;,
+                &#34;m_d&#34;,
                 &#34;T&#34;,
                 &#34;lv&#34;,
             ),
-            &#34;i&#34;,
-            f&#34;&#34;&#34;
+            name_iter=&#34;i&#34;,
+            body=f&#34;&#34;&#34;
             auto dml_dt = (ml_new[i] - ml_old[i]) / dt;
-            auto dqv_dt_corr = - dml_dt / (rhod_mean[i] * dv_mean);
+            auto d_water_vapour_mixing_ratio__dt_corrected = - dml_dt / m_d[i];
             auto dthd_dt_corr = {phys.state_variable_triplet.dthd_dt.c_inline(
-                rhod=&#39;rhod_mean[i]&#39;, thd=&#39;thd[i]&#39;, T=&#39;T[i]&#39;, dqv_dt=&#39;dqv_dt_corr&#39;, lv=&#39;lv[i]&#39;)};
-
-            thd[i] += dt * (dthd_dt_pred[i] / 2 + dthd_dt_corr);
-            qv[i] += dt * (dqv_dt_pred[i] / 2 + dqv_dt_corr);
+                rhod=&#39;rhod_copy[i]&#39;, thd=&#39;pthd[i]&#39;, T=&#39;T[i]&#39;,
+                d_water_vapour_mixing_ratio__dt=&#39;d_water_vapour_mixing_ratio__dt_corrected&#39;,
+                lv=&#39;lv[i]&#39;
+            )};
+            pthd[i] += dt * (dthd_dt_pred[i] / 2 + dthd_dt_corr);
+            predicted_water_vapour_mixing_ratio[i] += dt * (
+                d_water_vapour_mixing_ratio__dt_predicted[i] / 2 +
+                d_water_vapour_mixing_ratio__dt_corrected
+            );
+            rhod_copy[i] += dt * drhod_dt_pred[i] / 2;
             ml_old[i] = ml_new[i];
         &#34;&#34;&#34;.replace(
                 &#34;real_type&#34;, self._get_c_type()
             ),
         )
 
-    def calculate_m_l(self, ml, v, n, cell_id):
+    def calculate_m_l(self, ml, water_mass, multiplicity, cell_id):
         ml[:] = 0
-        self.__calculate_m_l.launch_n(len(n), (ml.data, v.data, n.data, cell_id.data))
+        self.__calculate_m_l.launch_n(
+            n=len(multiplicity),
+            args=(ml.data, water_mass.data, multiplicity.data, cell_id.data),
+        )
 
     # pylint: disable=unused-argument,too-many-locals
     @nice_thrust(**NICE_THRUST_FLAGS)
@@ -790,18 +890,18 @@ class CondensationMethods(
         solver,
         n_cell,
         cell_start_arg,
-        v,
+        water_mass,
         v_cr,
-        n,
+        multiplicity,
         vdry,
         idx,
         rhod,
         thd,
-        qv,
+        water_vapour_mixing_ratio,
         dv,
         prhod,
         pthd,
-        pqv,
+        predicted_water_vapour_mixing_ratio,
         kappa,
         f_org,
         rtol_x,
@@ -819,52 +919,53 @@ class CondensationMethods(
             counters[&#34;n_substeps&#34;][:] = 1  # TODO #527
 
         n_substeps = counters[&#34;n_substeps&#34;][0]
-        dv_mean = dv
 
         success[:] = True  # TODO #588
         dvfloat = self._get_floating_point
+        self.rhod_copy.fill(rhod)
 
         self.__pre_for.launch_n(
-            n_cell,
-            (
+            n=n_cell,
+            args=(
                 self.dthd_dt_pred.data,
-                self.dqv_dt_pred.data,
-                self.rhod_mean.data,
+                self.d_water_vapour_mixing_ratio__dt_predicted.data,
+                self.drhod_dt_pred.data,
+                self.m_d.data,
                 pthd.data,
                 thd.data,
-                pqv.data,
-                qv.data,
+                predicted_water_vapour_mixing_ratio.data,
+                water_vapour_mixing_ratio.data,
                 prhod.data,
-                rhod.data,
+                self.rhod_copy.data,
                 dvfloat(timestep),
                 RH_max.data,
+                dvfloat(dv),
             ),
         )
-
         timestep /= n_substeps
-        self.calculate_m_l(self.ml_old, v, n, cell_id)
+        self.calculate_m_l(self.ml_old, water_mass, multiplicity, cell_id)
 
         for _ in range(n_substeps):
             self.__pre.launch_n(
-                n_cell,
-                (
-                    *self.vars.values(),
+                n=n_cell,
+                args=(
+                    *self.vars_data.values(),
                     self.dthd_dt_pred.data,
-                    self.dqv_dt_pred.data,
-                    self.rhod_mean.data,
+                    self.d_water_vapour_mixing_ratio__dt_predicted.data,
+                    self.drhod_dt_pred.data,
                     pthd.data,
-                    pqv.data,
-                    rhod.data,
+                    predicted_water_vapour_mixing_ratio.data,
+                    self.rhod_copy.data,
                     dvfloat(timestep),
                     RH_max.data,
                 ),
             )
-            self.__update_volume.launch_n(
-                len(n),
-                (
-                    v.data,
+            self.__update_drop_masses.launch_n(
+                n=len(multiplicity),
+                args=(
+                    water_mass.data,
                     vdry.data,
-                    *self.vars.values(),
+                    *self.vars_data.values(),
                     kappa.data,
                     f_org.data,
                     dvfloat(timestep),
@@ -874,22 +975,22 @@ class CondensationMethods(
                     cell_id.data,
                 ),
             )
-            self.calculate_m_l(self.ml_new, v, n, cell_id)
+            self.calculate_m_l(self.ml_new, water_mass, multiplicity, cell_id)
             self.__post.launch_n(
-                n_cell,
-                (
+                n=n_cell,
+                args=(
                     self.dthd_dt_pred.data,
-                    self.dqv_dt_pred.data,
-                    self.rhod_mean.data,
+                    self.d_water_vapour_mixing_ratio__dt_predicted.data,
+                    self.drhod_dt_pred.data,
                     pthd.data,
-                    pqv.data,
-                    rhod.data,
+                    predicted_water_vapour_mixing_ratio.data,
+                    self.rhod_copy.data,
                     dvfloat(timestep),
                     self.ml_new.data,
                     self.ml_old.data,
-                    dvfloat(dv_mean),
-                    self.vars[&#34;T&#34;],
-                    self.vars[&#34;lv&#34;],
+                    self.m_d.data,
+                    self.vars[&#34;T&#34;].data,
+                    self.vars[&#34;lv&#34;].data,
                 ),
             )
 
@@ -909,16 +1010,24 @@ class CondensationMethods(
         self.adaptive = adaptive
         self.RH_rtol = RH_rtol
         self.max_iters = max_iters
-        self.ml_old = self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype())
-        self.ml_new = self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype())
-        self.T = self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype())
-        self.dthd_dt_pred = self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype())
-        self.dqv_dt_pred = self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype())
-        self.rhod_mean = self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype())
+        for attr in (
+            &#34;ml_old&#34;,
+            &#34;ml_new&#34;,
+            &#34;T&#34;,
+            &#34;dthd_dt_pred&#34;,
+            &#34;d_water_vapour_mixing_ratio__dt_predicted&#34;,
+            &#34;drhod_dt_pred&#34;,
+            &#34;m_d&#34;,
+            &#34;rhod_copy&#34;,
+        ):
+            setattr(
+                self, attr, self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype())
+            )
         self.vars = {
-            key: self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype()).data
+            key: self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype())
             for key in CondensationMethods.keys
-        }</code></pre>
+        }
+        self.vars_data = {key: val.data for key, val in self.vars.items()}</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -939,7 +1048,7 @@ class CondensationMethods(
 <h3>Methods</h3>
 <dl>
 <dt id="PySDM.backends.impl_thrust_rtc.methods.condensation_methods.CondensationMethods.calculate_m_l"><code class="name flex">
-<span>def <span class="ident">calculate_m_l</span></span>(<span>self, ml, v, n, cell_id)</span>
+<span>def <span class="ident">calculate_m_l</span></span>(<span>self, ml, water_mass, multiplicity, cell_id)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -947,9 +1056,12 @@ class CondensationMethods(
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def calculate_m_l(self, ml, v, n, cell_id):
+<pre><code class="python">def calculate_m_l(self, ml, water_mass, multiplicity, cell_id):
     ml[:] = 0
-    self.__calculate_m_l.launch_n(len(n), (ml.data, v.data, n.data, cell_id.data))</code></pre>
+    self.__calculate_m_l.launch_n(
+        n=len(multiplicity),
+        args=(ml.data, water_mass.data, multiplicity.data, cell_id.data),
+    )</code></pre>
 </details>
 </dd>
 <dt id="PySDM.backends.impl_thrust_rtc.methods.condensation_methods.CondensationMethods.condensation"><code class="name flex">
@@ -994,16 +1106,24 @@ class CondensationMethods(
     self.adaptive = adaptive
     self.RH_rtol = RH_rtol
     self.max_iters = max_iters
-    self.ml_old = self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype())
-    self.ml_new = self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype())
-    self.T = self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype())
-    self.dthd_dt_pred = self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype())
-    self.dqv_dt_pred = self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype())
-    self.rhod_mean = self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype())
+    for attr in (
+        &#34;ml_old&#34;,
+        &#34;ml_new&#34;,
+        &#34;T&#34;,
+        &#34;dthd_dt_pred&#34;,
+        &#34;d_water_vapour_mixing_ratio__dt_predicted&#34;,
+        &#34;drhod_dt_pred&#34;,
+        &#34;m_d&#34;,
+        &#34;rhod_copy&#34;,
+    ):
+        setattr(
+            self, attr, self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype())
+        )
     self.vars = {
-        key: self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype()).data
+        key: self.Storage.empty(shape=n_cell, dtype=self._get_np_dtype())
         for key in CondensationMethods.keys
-    }</code></pre>
+    }
+    self.vars_data = {key: val.data for key, val in self.vars.items()}</code></pre>
 </details>
 </dd>
 </dl>
@@ -1020,6 +1140,11 @@ class CondensationMethods(
 <li><h3>Super-module</h3>
 <ul>
 <li><code><a title="PySDM.backends.impl_thrust_rtc.methods" href="index.html">PySDM.backends.impl_thrust_rtc.methods</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="PySDM.backends.impl_thrust_rtc.methods.condensation_methods.args" href="#PySDM.backends.impl_thrust_rtc.methods.condensation_methods.args">args</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

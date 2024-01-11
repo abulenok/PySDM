@@ -34,6 +34,7 @@ Backend classes: CPU=`PySDM.backends.numba.Numba`
 and GPU=`PySDM.backends.thrust_rtc.ThrustRTC`
 &#34;&#34;&#34;
 import ctypes
+import os
 import sys
 import warnings
 
@@ -74,7 +75,7 @@ def _cuda_is_available():
     return True
 
 
-if _cuda_is_available() or cuda.is_available():
+if &#34;CI&#34; not in os.environ and (_cuda_is_available() or cuda.is_available()):
     from PySDM.backends.thrust_rtc import ThrustRTC
 else:
     from .impl_thrust_rtc.test_helpers import flag
@@ -165,6 +166,7 @@ alias for ThrustRTC
     FreezingMethods,
     DisplacementMethods,
     TerminalVelocityMethods,
+    IsotopeMethods,
 ):
     Storage = ImportedStorage
     Random = ImportedRandom
@@ -198,6 +200,7 @@ alias for ThrustRTC
 <li><a title="PySDM.backends.impl_numba.methods.freezing_methods.FreezingMethods" href="impl_numba/methods/freezing_methods.html#PySDM.backends.impl_numba.methods.freezing_methods.FreezingMethods">FreezingMethods</a></li>
 <li><a title="PySDM.backends.impl_numba.methods.displacement_methods.DisplacementMethods" href="impl_numba/methods/displacement_methods.html#PySDM.backends.impl_numba.methods.displacement_methods.DisplacementMethods">DisplacementMethods</a></li>
 <li><a title="PySDM.backends.impl_numba.methods.terminal_velocity_methods.TerminalVelocityMethods" href="impl_numba/methods/terminal_velocity_methods.html#PySDM.backends.impl_numba.methods.terminal_velocity_methods.TerminalVelocityMethods">TerminalVelocityMethods</a></li>
+<li><a title="PySDM.backends.impl_numba.methods.isotope_methods.IsotopeMethods" href="impl_numba/methods/isotope_methods.html#PySDM.backends.impl_numba.methods.isotope_methods.IsotopeMethods">IsotopeMethods</a></li>
 <li><a title="PySDM.backends.impl_common.backend_methods.BackendMethods" href="impl_common/backend_methods.html#PySDM.backends.impl_common.backend_methods.BackendMethods">BackendMethods</a></li>
 </ul>
 <h3>Class variables</h3>
@@ -260,6 +263,7 @@ alias for ThrustRTC
     DisplacementMethods,
     TerminalVelocityMethods,
     FreezingMethods,
+    IsotopeMethods,
 ):
     ENABLE = True
     Random = ImportedRandom
@@ -282,7 +286,7 @@ alias for ThrustRTC
         IndexMethods.__init__(self)
         PhysicsMethods.__init__(self)
         CondensationMethods.__init__(self)
-        MomentsMethods.__init__(self)
+        MomentsMethods.__init__(self, double_precision=double_precision)
         DisplacementMethods.__init__(self)
         TerminalVelocityMethods.__init__(self)
         FreezingMethods.__init__(self)
@@ -304,6 +308,7 @@ alias for ThrustRTC
 <li><a title="PySDM.backends.impl_thrust_rtc.methods.displacement_methods.DisplacementMethods" href="impl_thrust_rtc/methods/displacement_methods.html#PySDM.backends.impl_thrust_rtc.methods.displacement_methods.DisplacementMethods">DisplacementMethods</a></li>
 <li><a title="PySDM.backends.impl_thrust_rtc.methods.terminal_velocity_methods.TerminalVelocityMethods" href="impl_thrust_rtc/methods/terminal_velocity_methods.html#PySDM.backends.impl_thrust_rtc.methods.terminal_velocity_methods.TerminalVelocityMethods">TerminalVelocityMethods</a></li>
 <li><a title="PySDM.backends.impl_thrust_rtc.methods.freezing_methods.FreezingMethods" href="impl_thrust_rtc/methods/freezing_methods.html#PySDM.backends.impl_thrust_rtc.methods.freezing_methods.FreezingMethods">FreezingMethods</a></li>
+<li><a title="PySDM.backends.impl_thrust_rtc.methods.isotope_methods.IsotopeMethods" href="impl_thrust_rtc/methods/isotope_methods.html#PySDM.backends.impl_thrust_rtc.methods.isotope_methods.IsotopeMethods">IsotopeMethods</a></li>
 <li><a title="PySDM.backends.impl_thrust_rtc.methods.thrust_rtc_backend_methods.ThrustRTCBackendMethods" href="impl_thrust_rtc/methods/thrust_rtc_backend_methods.html#PySDM.backends.impl_thrust_rtc.methods.thrust_rtc_backend_methods.ThrustRTCBackendMethods">ThrustRTCBackendMethods</a></li>
 <li><a title="PySDM.backends.impl_common.backend_methods.BackendMethods" href="impl_common/backend_methods.html#PySDM.backends.impl_common.backend_methods.BackendMethods">BackendMethods</a></li>
 </ul>
